@@ -203,9 +203,9 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
   done
 
   if [[ -n "${applicationVersion}" ]]; then
-    gitReleaseUrl="https://api.github.com/repos/cosyses/test/releases/tags/${applicationVersion}"
+    gitReleaseUrl="https://api.github.com/repos/cosyses/app/releases/tags/${applicationVersion}"
   else
-    gitReleaseUrl="https://api.github.com/repos/cosyses/test/releases/latest"
+    gitReleaseUrl="https://api.github.com/repos/cosyses/app/releases/latest"
   fi
 
   echo "Determining release data"
