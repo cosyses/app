@@ -49,17 +49,17 @@ distribution=$(lsb_release -i | awk '{print $3}')
 release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
 
 if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
-  source "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" "${prepareParametersList[@]}"
+  applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"
 elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" ]]; then
-  source "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" "${prepareParametersList[@]}"
+  applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}"
 elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" ]]; then
-  source "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" "${prepareParametersList[@]}"
+  applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}"
 elif [[ -f "${cosysesPath}/${applicationName}/${distribution}/${release}/${applicationScript}" ]]; then
-  source "${cosysesPath}/${applicationName}/${distribution}/${release}/${applicationScript}" "${prepareParametersList[@]}"
+  applicationScriptPath="${cosysesPath}/${applicationName}/${distribution}/${release}"
 elif [[ -f "${cosysesPath}/${applicationName}/${distribution}/${applicationScript}" ]]; then
-  source "${cosysesPath}/${applicationName}/${distribution}/${applicationScript}" "${prepareParametersList[@]}"
+  applicationScriptPath="${cosysesPath}/${applicationName}/${distribution}"
 elif [[ -f "${cosysesPath}/${applicationName}/${applicationScript}" ]]; then
-  source "${cosysesPath}/${applicationName}/${applicationScript}" "${prepareParametersList[@]}"
+  applicationScriptPath="${cosysesPath}/${applicationName}"
 else
   if [[ -n "${applicationVersion}" ]]; then
     >&2 echo "Could not any find script to install application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
@@ -68,6 +68,10 @@ else
   fi
   exit 1
 fi
+
+export applicationScriptPath
+
+source "${applicationScriptPath}/${applicationScript}" "${prepareParametersList[@]}"
 
 if [[ -n "${applicationVersion}" ]]; then
   echo "Finished installing application: ${applicationName} with version: ${applicationVersion}"

@@ -5,6 +5,11 @@ baseVersion="${2}"
 
 versions=($(get-available-package-versions "${packageName}" "${baseVersion}"))
 
+if [[ "${#versions}" -eq 0 ]]; then
+  >&2 echo "Could not find latest version for package: ${packageName} in version: ${baseVersion}"
+  exit 1
+fi
+
 comparableVersions=()
 declare -A originalVersions
 for version in "${versions[@]}"; do

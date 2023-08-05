@@ -1,8 +1,13 @@
 #!/bin/bash -e
 
 if [[ ${1} == ppa:* ]]; then
-  launchPadUrl=$(echo "${1}" | sed -e "s/ppa:/ppa.launchpad.net//")
+  launchPadUrl=$(echo "${1}" | sed -e "s/ppa:/ppa.launchpad.net\//")
   if has-repository "${launchPadUrl}"; then
+    echo "Repository ${1} already installed"
+    exit 0
+  fi
+  launchPadContentUrl=$(echo "${1}" | sed -e "s/ppa:/ppa.launchpadcontent.net\//")
+  if has-repository "${launchPadContentUrl}"; then
     echo "Repository ${1} already installed"
     exit 0
   fi
