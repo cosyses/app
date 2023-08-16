@@ -72,6 +72,7 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 echo "Downloading libraries"
+install-package perl
 install-package libaio1
 install-package libnuma1
 install-package libmecab2
