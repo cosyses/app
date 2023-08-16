@@ -34,6 +34,7 @@ if [[ -z "${applicationScriptPath}" ]]; then
 fi
 
 type=
+prepareParametersList=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${type}" ]]; then
@@ -44,5 +45,8 @@ if [[ -z "${type}" ]]; then
 fi
 
 if [[ -f "${applicationScriptPath}/install/${type}.sh" ]]; then
-  source "${applicationScriptPath}/install/${type}.sh"
+  source "${applicationScriptPath}/install/${type}.sh" "${prepareParametersList[@]}"
+else
+  >&2 echo "Could not find PHP installation of type: ${type}"
+  exit 1
 fi
