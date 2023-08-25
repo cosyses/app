@@ -17,6 +17,8 @@ if [ -f "${aptFileName}" ]; then
   fi
 fi
 
+install-package gnupg
+
 echo "Installing repository: ${2}"
 if [[ -n "${keyUri}" ]]; then
   curl -L "${keyUri}" | apt-key add -

@@ -18,7 +18,9 @@ for version in "${versions[@]}"; do
   originalVersions["${comparableVersion}"]="${version}"
 done
 
-sortedVersions=($(echo "${comparableVersions[@]}" | tr " " "\n" | sed 's/^[0-9]://' | sort -rV))
-latestVersion="${sortedVersions[0]}"
+if [[ -n "${comparableVersions[*]}" ]]; then
+  sortedVersions=($(echo "${comparableVersions[@]}" | tr " " "\n" | sed 's/^[0-9]://' | sort -rV))
+  latestVersion="${sortedVersions[0]}"
 
-echo "${originalVersions[${latestVersion}]}"
+  echo "${originalVersions[${latestVersion}]}"
+fi
