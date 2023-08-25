@@ -29,6 +29,18 @@ applicationScript=
 prepareParametersList=
 source "${cosysesPath}/prepare-parameters.sh"
 
+if [[ -z "${applicationName}" ]] && [[ -z "${applicationVersion}" ]] && [[ -z "${applicationScript}" ]]; then
+  if [[ -n "${1}" ]]; then
+    applicationName="${1}"
+  fi
+  if [[ -n "${2}" ]]; then
+    applicationVersion="${2}"
+  fi
+  if [[ -n "${3}" ]]; then
+    applicationScript="${3}"
+  fi
+fi
+
 if [[ -z "${applicationName}" ]]; then
   >&2 echo "No application name specified!"
   usage
@@ -60,7 +72,20 @@ elif [[ -f "${cosysesPath}/${applicationName}/${distribution}/${applicationScrip
   applicationScriptPath="${cosysesPath}/${applicationName}/${distribution}"
 elif [[ -f "${cosysesPath}/${applicationName}/${applicationScript}" ]]; then
   applicationScriptPath="${cosysesPath}/${applicationName}"
-else
+elif [[ -z "${applicationVersion}" ]]; then
+  if [[ -d "${cosysesPath}/${applicationName}" ]]; then
+    applicationVersion=$(find "${cosysesPath}/${applicationName}"/* -maxdepth 1 -type d -exec basename {} \; | sort --version-sort | tail -n1 | tr -d '\r' | tr -d '\n')
+    if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
+      applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"
+    elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" ]]; then
+      applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}"
+    elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" ]]; then
+      applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}"
+    fi
+  fi
+fi
+
+if [[ -z "${applicationScriptPath}" ]]; then
   if [[ -n "${applicationVersion}" ]]; then
     >&2 echo "Could not any find script to install application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
   else
