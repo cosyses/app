@@ -114,6 +114,7 @@ fi
 if [[ ! -d "${userHome}/.ssh" ]]; then
   echo "Creating directory: ${userHome}/.ssh"
   mkdir -p "${userHome}/.ssh"
+  chown "${userName}":"${userGroup}" "${userHome}/.ssh"
 elif [[ "${verbose}" == 1 ]]; then
   echo "Directory: ${userHome}/.ssh already created"
 fi
@@ -152,6 +153,7 @@ fi
 if [[ ! -d "${userHome}/.cache/" ]]; then
   echo "Creating directory: ${userHome}/.cache/"
   mkdir -p "${userHome}/.cache/"
+  chown "${userName}":"${userGroup}" "${userHome}/.cache/"
 elif [[ "${verbose}" == 1 ]]; then
   echo "Directory: ${userHome}/.cache/ already created"
 fi
@@ -159,6 +161,8 @@ fi
 if [[ ! -d "${userHome}/.config/composer/" ]]; then
   echo "Creating directory: ${userHome}/.config/composer/"
   mkdir -p "${userHome}/.config/composer/"
+  chown "${userName}":"${userGroup}" "${userHome}/.config/"
+  chown "${userName}":"${userGroup}" "${userHome}/.config/composer/"
 elif [[ "${verbose}" == 1 ]]; then
   echo "Directory: ${userHome}/.config/composer/ already created"
 fi
