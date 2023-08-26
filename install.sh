@@ -94,6 +94,8 @@ if [[ -z "${applicationScriptPath}" ]]; then
   exit 1
 fi
 
+export applicationName
+export applicationVersion
 export applicationScriptPath
 
 source "${applicationScriptPath}/${applicationScript}" "${prepareParametersList[@]}"
