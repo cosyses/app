@@ -9,3 +9,6 @@ for functionFile in "${functionFiles[@]}"; do
   cp "${functionFile}" "/usr/local/bin/${functionScriptName}"
   chmod +x "/usr/local/bin/${functionScriptName}"
 done
+
+install-package apt-utils
+install-package dialog
