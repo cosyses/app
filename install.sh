@@ -99,7 +99,11 @@ export applicationScriptPath
 source "${applicationScriptPath}/${applicationScript}" "${prepareParametersList[@]}"
 
 if [[ -n "${applicationVersion}" ]]; then
-  echo "Finished installing application: ${applicationName} with version: ${applicationVersion}"
+  if [[ -n "${applicationScript}" ]]; then
+    echo "Finished installing application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
+  else
+    echo "Finished installing application: ${applicationName} with version: ${applicationVersion}"
+  fi
 else
   echo "Finished installing application: ${applicationName}"
 fi
