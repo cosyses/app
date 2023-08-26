@@ -4,6 +4,8 @@ packageName="${1}"
 version="${2}"
 uri="${3}"
 
+install-package gnupg
+
 installedVersion=$(get-installed-package-version "${packageName}")
 
 if [ "$version" == "$installedVersion" ]; then
@@ -14,4 +16,3 @@ else
   dpkg --install "/tmp/${uri##*/}"
   rm -rf "/tmp/${uri##*/}"
 fi
-
