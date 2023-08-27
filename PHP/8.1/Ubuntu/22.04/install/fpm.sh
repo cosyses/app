@@ -12,10 +12,11 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help  Show this message
-  --port  Port of installation, default: 3000
+  --help         Show this message
+  --bindAddress  Host name or ip address, default: 127.0.0.1
+  --port         Port of installation, default: 9000
 
-Example: ${scriptFileName} --port 3000
+Example: ${scriptFileName} --port 9000
 EOF
 }
 
@@ -38,8 +39,17 @@ if [[ -z "${applicationVersion}" ]]; then
   exit 1
 fi
 
+bindAddress=
 port=
 source "${cosysesPath}/prepare-parameters.sh"
+
+if [[ -z "${bindAddress}" ]]; then
+  bindAddress="127.0.0.1"
+fi
+
+if [[ -z "${port}" ]]; then
+  port="3000"
+fi
 
 phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
 if [[ -z "${phpVersion}" ]]; then
@@ -63,7 +73,7 @@ replace-file-content /etc/php/8.1/fpm/php.ini "memory_limit = 4096M" "memory_lim
 add-file-content-after /etc/php/8.1/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
 
 replace-file-content /etc/php/8.1/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
-replace-file-content /etc/php/8.1/fpm/pool.d/www.conf "listen = 127.0.0.1:${port}" "listen = /run/php/php8.1-fpm.sock"
+replace-file-content /etc/php/8.1/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php8.1-fpm.sock"
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"

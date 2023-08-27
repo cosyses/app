@@ -1,26 +1,68 @@
 #!/bin/bash -e
 
-install-package python3-software-properties
-add-ppa-repository ppa:ondrej/php
-install-package libc6 2.35
-install-package php7.4
-update-alternatives --set php /usr/bin/php7.4
-update-alternatives --set phar /usr/bin/phar7.4
-update-alternatives --set phar.phar /usr/bin/phar.phar7.4
-purge-package apache2
-clean-packages
-install-package php7.4-fpm
-install-package php7.4-cli
-install-package php-pear 1:1.10
-install-package libxml2-dev
-install-package libcurl4-openssl-dev
-install-package libpcre3-dev
-purge-package apache2
-clean-packages
+scriptFileName="${BASH_SOURCE[0]}"
+if [[ -L "${scriptFileName}" ]] && [[ -x "$(command -v readlink)" ]]; then
+  scriptFileName=$(readlink -f "${scriptFileName}")
+fi
 
-mkdir -p /var/log/php
-chown root:www-data /var/log/php
-chmod 0660 /var/log/php
+usage()
+{
+cat >&2 << EOF
+
+usage: ${scriptFileName} options
+
+OPTIONS:
+  --help         Show this message
+  --bindAddress  Host name or ip address, default: 127.0.0.1
+  --port         Port of installation, default: 9000
+
+Example: ${scriptFileName} --port 9000
+EOF
+}
+
+if [[ -z "${cosysesPath}" ]]; then
+  >&2 echo "No cosyses path exported!"
+  echo ""
+  usage
+  exit 1
+fi
+
+if [[ -z "${applicationName}" ]]; then
+  >&2 echo "No application name exported!"
+  echo ""
+  exit 1
+fi
+
+if [[ -z "${applicationVersion}" ]]; then
+  >&2 echo "No application version exported!"
+  echo ""
+  exit 1
+fi
+
+bindAddress=
+port=
+source "${cosysesPath}/prepare-parameters.sh"
+
+if [[ -z "${bindAddress}" ]]; then
+  bindAddress="127.0.0.1"
+fi
+
+if [[ -z "${port}" ]]; then
+  port="3000"
+fi
+
+phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
+if [[ -z "${phpVersion}" ]]; then
+  cosyses \
+    --applicationName "${applicationName}" \
+    --applicationVersion "${applicationVersion}" \
+    --type cli
+fi
+
+install-package php7.4-fpm
+
+echo "Stopping service"
+service php8.1-fpm stop
 
 replace-file-content /etc/php/7.4/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php7.4-fpm.log"
 
@@ -31,15 +73,7 @@ replace-file-content /etc/php/7.4/fpm/php.ini "memory_limit = 4096M" "memory_lim
 add-file-content-after /etc/php/7.4/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
 
 replace-file-content /etc/php/7.4/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
-
-if [[ -f /.dockerenv ]]; then
-  replace-file-content /etc/php/7.4/fpm/pool.d/www.conf "listen = 127.0.0.1:3000" "listen = /run/php/php7.4-fpm.sock"
-fi
-
-replace-file-content /etc/php/7.4/cli/php.ini "max_execution_time = 14400" "max_execution_time = 30"
-replace-file-content /etc/php/7.4/cli/php.ini "max_input_time = 14400" "max_input_time = 60"
-replace-file-content /etc/php/7.4/cli/php.ini "memory_limit = 4096M" "memory_limit = -1"
-add-file-content-after /etc/php/7.4/cli/php.ini "error_log = /var/log/php/cli.log" "error_log = syslog" 1
+replace-file-content /etc/php/7.4/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php7.4-fpm.sock"
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"
@@ -50,9 +84,13 @@ mkdir -p /run/php
 EOF
   chmod +x /usr/local/bin/php.sh
 else
-  echo "Restarting Service"
-  service php7.4-fpm restart
+  echo "Starting service"
+  service php7.4-fpm start
 
   echo "Enabling autostart"
   systemctl enable php7.4-fpm --now
 fi
+
+mkdir -p /opt/install/
+crudini --set /opt/install/env.properties php version "7.4"
+crudini --set /opt/install/env.properties php type "fpm"
