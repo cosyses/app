@@ -39,14 +39,13 @@ add-file-content-after /etc/php/8.1/cli/php.ini "error_log = /var/log/php/cli.lo
 
 update-alternatives --set php "$(which php8.1)"
 
-if [[ ! -f /.dockerenv ]]; then
-  if [[ $(which apache2 | wc -l) -gt 0 ]]; then
-    service apache2 restart
-  fi
-
-  if [[ $(which nginx | wc -l) -gt 0 ]]; then
-    service nginx restart
-  fi
+if [[ -f /.dockerenv ]]; then
+  echo "Creating start script at: /usr/local/bin/php.sh"
+  cat <<EOF > /usr/local/bin/php.sh
+#!/bin/bash -e
+tail -f /dev/null
+EOF
+  chmod +x /usr/local/bin/php.sh
 fi
 
 mkdir -p /opt/install/
