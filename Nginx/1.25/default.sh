@@ -18,7 +18,7 @@ OPTIONS:
   --sslCertFile  SSL certificate file, default: /etc/ssl/certs/ssl-cert-snakeoil.pem
   --sslKeyFile   SSL key file, default: /etc/ssl/private/ssl-cert-snakeoil.key
 
-Example: ${scriptFileName} -p 80 -s 443
+Example: ${scriptFileName} --httpPort 80 --sslPort 443
 EOF
 }
 

@@ -75,42 +75,38 @@ fi
 install-package ssl-cert
 add-certificate "default" "${sslCertFile}" "${sslKeyFile}"
 
-install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+install-package apache2-bin 2.4
+install-package apache2-data 2.4
+install-package apache2 2.4
+a2enmod rewrite ssl headers expires
 
-add-repository "nginx.list" "http://nginx.org/packages/mainline/ubuntu/" "focal" "nginx" "http://nginx.org/keys/nginx_signing.key" "y"
-install-package nginx 1.25
+service apache2 stop
 
-add-file-content-before /etc/security/limits.conf "nginx       soft    nofile  32768" "# End of file" 1
-add-file-content-before /etc/security/limits.conf "nginx       hard    nofile  65536" "# End of file" 1
-sysctl -p
+rm -rf /var/log/apache2/*
 
-service nginx stop
+echo "ServerName localhost" > /etc/apache2/conf-available/server.conf
+echo "EnableSendfile off" >> /etc/apache2/conf-available/server.conf
+a2enconf server.conf
 
-rm -rf /var/log/nginx/*
-
-replace-file-content /etc/nginx/nginx.conf "nginx-access.log" "access.log"
-replace-file-content /etc/nginx/nginx.conf "nginx-error.log" "error.log"
-replace-file-content /etc/nginx/nginx.conf "sendfile off" "sendfile on"
-replace-file-content /etc/nginx/nginx.conf "worker_connections  32768;" "worker_connections  1024;"
-add-file-content-after /etc/nginx/nginx.conf "worker_rlimit_nofile 32768;" "pid        /var/run/nginx.pid;" 1
-
-usermod -a -G www-data nginx
+replace-file-content /etc/apache2/ports.conf "Listen ${httpPort}" "Listen 80"
+replace-file-content /etc/apache2/ports.conf "Listen ${sslPort}" "Listen 443"
 
 if [[ -f /.dockerenv ]]; then
-  echo "Creating start script at: /usr/local/bin/nginx.sh"
-  cat <<EOF > /usr/local/bin/nginx.sh
+  echo "Creating start script at: /usr/local/bin/apache.sh"
+  cat <<EOF > /usr/local/bin/apache.sh
 #!/bin/bash -e
-/usr/sbin/nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
+/usr/sbin/apache2ctl -D FOREGROUND
 EOF
-  chmod +x /usr/local/bin/nginx.sh
+  chmod +x /usr/local/bin/apache.sh
 else
-  service nginx start
+  echo "Starting Apache"
+  service apache2 start
 fi
 
 mkdir -p /opt/install/
-crudini --set /opt/install/env.properties nginx version "${applicationVersion}"
-crudini --set /opt/install/env.properties nginx httpPort "${httpPort}"
-crudini --set /opt/install/env.properties nginx sslPort "${sslPort}"
+crudini --set /opt/install/env.properties apache version "${applicationVersion}"
+crudini --set /opt/install/env.properties apache httpPort "${httpPort}"
+crudini --set /opt/install/env.properties apache sslPort "${sslPort}"
 
 cosyses \
   --applicationName "${applicationName}" \
