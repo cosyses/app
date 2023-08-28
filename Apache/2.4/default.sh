@@ -100,10 +100,7 @@ cat << EOF > /etc/apache2/sites-available/000-default.conf
 </IfModule>
 EOF
 
-if [[ -f /.dockerenv ]]; then
-  echo "Reloading Apache"
-  sudo service apache2 reload
-else
+if [[ ! -f /.dockerenv ]]; then
   echo "Restarting Apache"
-  sudo service apache2 restart
+  service apache2 restart
 fi
