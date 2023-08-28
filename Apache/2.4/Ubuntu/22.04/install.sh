@@ -78,7 +78,7 @@ add-certificate "default" "${sslCertFile}" "${sslKeyFile}"
 install-package apache2-bin 2.4
 install-package apache2-data 2.4
 install-package apache2 2.4
-a2enmod rewrite ssl headers expires
+a2enmod expires headers proxy proxy_fcgi rewrite ssl
 
 service apache2 stop
 

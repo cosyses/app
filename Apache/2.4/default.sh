@@ -65,6 +65,7 @@ cat << EOF > /etc/apache2/sites-available/000-default.conf
 <VirtualHost *:${httpPort}>
   ServerAdmin webmaster@localhost.local
   DocumentRoot /var/www/html/
+  DirectoryIndex index.html index.htm
   <Directory /var/www/html/>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride None
@@ -87,6 +88,7 @@ cat << EOF > /etc/apache2/sites-available/000-default.conf
     SSLEngine on
     ServerAdmin webmaster@localhost.local
     DocumentRoot /var/www/html/
+    DirectoryIndex index.html index.htm
     <Directory /var/www/html/>
       Options Indexes FollowSymLinks MultiViews
       AllowOverride None
