@@ -61,8 +61,144 @@ elif [[ "${verbose}" == 1 ]]; then
 fi
 
 if [[ ! -d "${userHome}" ]]; then
+  echo "Creating user home directory: ${userHome}"
   mkdir -p "${userHome}"
-  chown "${userName}":"${userGroup}" "${userHome}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "User home directory: ${userHome} already exists"
+fi
+
+currentOwner=$(stat -c '%U' "${userHome}")
+currentGroup=$(stat -c '%G' "${userHome}")
+if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
+  echo "Changing owner of directory: ${userHome} to user: ${userName}:${userGroup}"
+  chown "${userName}":"${userGroup}" "${userHome}" | cat
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${userHome} already owned by user: ${userName}:${userGroup}"
+fi
+
+sshDirectory="${userHome}/.ssh"
+
+if [[ ! -d "${sshDirectory}" ]]; then
+  echo "Creating directory: ${sshDirectory}"
+  mkdir -p "${sshDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${sshDirectory} already created"
+fi
+
+currentOwner=$(stat -c '%U' "${sshDirectory}")
+currentGroup=$(stat -c '%G' "${sshDirectory}")
+if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
+  echo "Changing owner of directory: ${sshDirectory} to user: ${userName}:${userGroup}"
+  chown -hR "${userName}":"${userGroup}" "${sshDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${sshDirectory} already owned by user: ${userName}:${userGroup}"
+fi
+
+knownHostsFile="${sshDirectory}/known_hosts"
+
+if [[ ! -f "${knownHostsFile}" ]]; then
+  echo "Creating file: ${knownHostsFile}"
+  sudo -H -u "${userName}" bash -c "touch ${knownHostsFile}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "File: ${knownHostsFile} already created"
+fi
+
+currentMode=$(stat --format '%a' "${knownHostsFile}")
+if [[ "${currentMode}" != "600" ]]; then
+  echo "Changing mode of file: ${knownHostsFile} to: 0600"
+  chmod 0600 "${knownHostsFile}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Mode of file: ${knownHostsFile} already changed to: 0600"
+fi
+
+sshIdFile="${sshDirectory}/id_rsa"
+
+if [[ ! -f "${sshIdFile}" ]]; then
+  echo "Generating SSH key"
+  sudo -H -u "${userName}" bash -c "generate-ssh-key"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "SSH key already generated"
+fi
+
+cacheDirectory="${userHome}/.cache"
+
+if [[ ! -d "${cacheDirectory}" ]]; then
+  echo "Creating directory: ${cacheDirectory}"
+  mkdir -p "${cacheDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${cacheDirectory} already created"
+fi
+
+currentOwner=$(stat -c '%U' "${cacheDirectory}")
+currentGroup=$(stat -c '%G' "${cacheDirectory}")
+if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
+  echo "Changing owner of directory: ${cacheDirectory} to user: ${userName}:${userGroup}"
+  chown -hR "${userName}":"${userGroup}" "${cacheDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${cacheDirectory} already owned by user: ${userName}:${userGroup}"
+fi
+
+configDirectory="${userHome}/.config"
+
+if [[ ! -d "${configDirectory}" ]]; then
+  echo "Creating directory: ${configDirectory}"
+  mkdir -p "${configDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${configDirectory} already created"
+fi
+
+currentOwner=$(stat -c '%U' "${configDirectory}")
+currentGroup=$(stat -c '%G' "${configDirectory}")
+if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
+  echo "Changing owner of directory: ${configDirectory} to user: ${userName}:${userGroup}"
+  chown -hR "${userName}":"${userGroup}" "${configDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${configDirectory} already owned by user: ${userName}:${userGroup}"
+fi
+
+composerDirectory="${configDirectory}/composer"
+
+if [[ ! -d "${composerDirectory}" ]]; then
+  echo "Creating directory: ${composerDirectory}"
+  mkdir -p "${composerDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${composerDirectory} already created"
+fi
+
+currentOwner=$(stat -c '%U' "${composerDirectory}")
+currentGroup=$(stat -c '%G' "${composerDirectory}")
+if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
+  echo "Changing owner of directory: ${composerDirectory} to user: ${userName}:${userGroup}"
+  chown -hR "${userName}":"${userGroup}" "${composerDirectory}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "Directory: ${composerDirectory} already owned by user: ${userName}:${userGroup}"
+fi
+
+if [[ -f /etc/sudoers.d/ ]]; then
+  if [[ "${sudoWithPassword}" == 0 ]] && [[ "${disallowSudo}" == 0 ]]; then
+    if [[ ! -f "/etc/sudoers.d/${userName}" ]] || [[ $(grep "${userName} ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/${userName}" | wc -l) -eq 0 ]]; then
+      echo "Allow sudo without password for user: ${userName}"
+      echo "${userName} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${userName}"
+      chmod 0440 "/etc/sudoers.d/${userName}"
+    elif [[ "${verbose}" == 1 ]]; then
+      echo "Sudo without password for user: ${userName} already allowed"
+    fi
+  elif [[ "${sudoWithPassword}" == 1 ]]; then
+    if [[ ! -f "/etc/sudoers.d/${userName}" ]] || [[ $(grep "${userName} ALL=(ALL) ALL" "/etc/sudoers.d/${userName}" | wc -l) -eq 0 ]]; then
+      echo "Allow sudo with password for user: ${userName}"
+      echo "${userName} ALL=(ALL) ALL" > "/etc/sudoers.d/${userName}"
+      chmod 0440 "/etc/sudoers.d/${userName}"
+    elif [[ "${verbose}" == 1 ]]; then
+      echo "Sudo with password for user: ${userName} already allowed"
+    fi
+  elif [[ "${disallowSudo}" == 1 ]]; then
+    if [[ -f "/etc/sudoers.d/${userName}" ]]; then
+      echo "Disallow sudo for user: ${userName}"
+      rm -rf "/etc/sudoers.d/${userName}"
+    elif [[ "${verbose}" == 1 ]]; then
+      echo "Sudo for user: ${userName} already disallowed"
+    fi
+  fi
 fi
 
 if [[ ! -f "${userHome}/.profile" ]]; then
@@ -84,94 +220,4 @@ if [ -d "\${HOME}/.local/bin" ] ; then
 fi
 EOF
   chown "${userName}":"${userGroup}" "${userHome}/.profile"
-fi
-
-if [[ "${sudoWithPassword}" == 0 ]] && [[ "${disallowSudo}" == 0 ]]; then
-  if [[ ! -f "/etc/sudoers.d/${userName}" ]] || [[ $(grep "${userName} ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/${userName}" | wc -l) -eq 0 ]]; then
-    echo "Allow sudo without password for user: ${userName}"
-    echo "${userName} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${userName}"
-    chmod 0440 "/etc/sudoers.d/${userName}"
-  elif [[ "${verbose}" == 1 ]]; then
-    echo "Sudo without password for user: ${userName} already allowed"
-  fi
-elif [[ "${sudoWithPassword}" == 1 ]]; then
-  if [[ ! -f "/etc/sudoers.d/${userName}" ]] || [[ $(grep "${userName} ALL=(ALL) ALL" "/etc/sudoers.d/${userName}" | wc -l) -eq 0 ]]; then
-    echo "Allow sudo with password for user: ${userName}"
-    echo "${userName} ALL=(ALL) ALL" > "/etc/sudoers.d/${userName}"
-    chmod 0440 "/etc/sudoers.d/${userName}"
-  elif [[ "${verbose}" == 1 ]]; then
-    echo "Sudo with password for user: ${userName} already allowed"
-  fi
-elif [[ "${disallowSudo}" == 1 ]]; then
-  if [[ -f "/etc/sudoers.d/${userName}" ]]; then
-    echo "Disallow sudo for user: ${userName}"
-    rm -rf "/etc/sudoers.d/${userName}"
-  elif [[ "${verbose}" == 1 ]]; then
-    echo "Sudo for user: ${userName} already disallowed"
-  fi
-fi
-
-if [[ ! -d "${userHome}/.ssh" ]]; then
-  echo "Creating directory: ${userHome}/.ssh"
-  mkdir -p "${userHome}/.ssh"
-  chown "${userName}":"${userGroup}" "${userHome}/.ssh"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "Directory: ${userHome}/.ssh already created"
-fi
-
-currentOwner=$(stat -c '%U' "${userHome}/.ssh")
-currentGroup=$(stat -c '%G' "${userHome}/.ssh")
-if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
-  echo "Changing owner of directory: ${userHome}/.ssh to user: ${userName}:${userGroup}"
-  chown -hR "${userName}":"${userGroup}" "${userHome}/.ssh"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "Directory: ${userHome}/.ssh already owned by user: ${userName}:${userGroup}"
-fi
-
-if [[ ! -f "${userHome}/.ssh/known_hosts" ]]; then
-  echo "Creating file: ${userHome}/.ssh/known_hosts"
-  sudo -H -u "${userName}" bash -c "touch ${userHome}/.ssh/known_hosts"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "File: ${userHome}/.ssh/known_hosts already created"
-fi
-
-currentMode=$(stat --format '%a' "${userHome}/.ssh/known_hosts")
-if [[ "${currentMode}" != "600" ]]; then
-  echo "Changing mode of file: ${userHome}/.ssh/known_hosts to: 0600"
-  chmod 0600 "${userHome}/.ssh/known_hosts"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "Mode of file: ${userHome}/.ssh/known_hosts already changed to: 0600"
-fi
-
-if [[ ! -f "${userHome}/.ssh/id_rsa" ]]; then
-  echo "Generating SSH key"
-  sudo -H -u "${userName}" bash -c "generate-ssh-key"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "SSH key already generated"
-fi
-
-if [[ ! -d "${userHome}/.cache/" ]]; then
-  echo "Creating directory: ${userHome}/.cache/"
-  mkdir -p "${userHome}/.cache/"
-  chown "${userName}":"${userGroup}" "${userHome}/.cache/"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "Directory: ${userHome}/.cache/ already created"
-fi
-
-if [[ ! -d "${userHome}/.config/composer/" ]]; then
-  echo "Creating directory: ${userHome}/.config/composer/"
-  mkdir -p "${userHome}/.config/composer/"
-  chown "${userName}":"${userGroup}" "${userHome}/.config/"
-  chown "${userName}":"${userGroup}" "${userHome}/.config/composer/"
-elif [[ "${verbose}" == 1 ]]; then
-  echo "Directory: ${userHome}/.config/composer/ already created"
-fi
-
-currentOwner=$(stat -c '%U' "${userHome}")
-currentGroup=$(stat -c '%G' "${userHome}")
-if [[ "${currentOwner}" != "${userName}" ]] || [[ "${currentGroup}" != "${userGroup}" ]]; then
-  echo "Changing owner of directory: ${userHome} to user: ${userName}:${userGroup}"
-  chown -hR "${userName}":"${userGroup}" "${userHome}" | cat
-elif [[ "${verbose}" == 1 ]]; then
-  echo "Directory: ${userHome} already owned by user: ${userName}:${userGroup}"
 fi
