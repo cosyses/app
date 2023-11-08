@@ -12,11 +12,26 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help  Show this message
+  --help   Show this message
+  --clean  Flag if apache packages should be cleaned, default: yes
 
 Example: ${scriptFileName}
 EOF
 }
+
+if [[ -z "${cosysesPath}" ]]; then
+  >&2 echo "No cosyses path exported!"
+  echo ""
+  usage
+  exit 1
+fi
+
+clean=
+source "${cosysesPath}/prepare-parameters.sh"
+
+if [[ -z "${clean}" ]]; then
+  clean="yes"
+fi
 
 install-package python3-software-properties
 add-ppa-repository ppa:ondrej/php
@@ -24,8 +39,11 @@ install-package php8.1
 update-alternatives --set php /usr/bin/php8.1
 update-alternatives --set phar /usr/bin/phar8.1
 update-alternatives --set phar.phar /usr/bin/phar.phar8.1
-purge-package apache2
-clean-packages
+if [[ "${clean}" == "yes" ]]; then
+  echo "Cleaning Apache packages"
+  purge-package apache2
+  clean-packages
+fi
 install-package php-pear 1:1.10
 
 mkdir -p /var/log/php

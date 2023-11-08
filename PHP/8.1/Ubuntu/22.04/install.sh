@@ -13,7 +13,7 @@ usage: ${scriptFileName} options
 
 OPTIONS:
   --help  Show this message
-  --type  Type of installation (fpm, mod)
+  --type  Type of installation (cli, fpm, mod), default: cli
 
 Example: ${scriptFileName} --type mod
 EOF
@@ -38,10 +38,7 @@ prepareParametersList=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${type}" ]]; then
-  >&2 echo "No type of installation specified!"
-  echo ""
-  usage
-  exit 1
+  type="cli"
 fi
 
 if [[ -f "${applicationScriptPath}/install/${type}.sh" ]]; then

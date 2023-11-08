@@ -59,38 +59,38 @@ if [[ -z "${phpVersion}" ]]; then
     --type cli
 fi
 
-install-package php7.4-fpm
+install-package php8.2-fpm
 
 echo "Stopping service"
-service php7.4-fpm stop
+service php8.2-fpm stop
 
-replace-file-content /etc/php/7.4/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php7.4-fpm.log"
+replace-file-content /etc/php/8.2/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php8.2-fpm.log"
 
-replace-file-content /etc/php/7.4/fpm/php.ini "max_execution_time = 3600" "max_execution_time = 30"
-replace-file-content /etc/php/7.4/fpm/php.ini "max_input_time = 3600" "max_input_time = 60"
-replace-file-content /etc/php/7.4/fpm/php.ini "max_input_vars = 100000" "; max_input_vars = 1000"
-replace-file-content /etc/php/7.4/fpm/php.ini "memory_limit = 4096M" "memory_limit = 128M"
-add-file-content-after /etc/php/7.4/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
+replace-file-content /etc/php/8.2/fpm/php.ini "max_execution_time = 3600" "max_execution_time = 30"
+replace-file-content /etc/php/8.2/fpm/php.ini "max_input_time = 3600" "max_input_time = 60"
+replace-file-content /etc/php/8.2/fpm/php.ini "max_input_vars = 100000" "; max_input_vars = 1000"
+replace-file-content /etc/php/8.2/fpm/php.ini "memory_limit = 4096M" "memory_limit = 128M"
+add-file-content-after /etc/php/8.2/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
 
-replace-file-content /etc/php/7.4/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
-replace-file-content /etc/php/7.4/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php7.4-fpm.sock"
+replace-file-content /etc/php/8.2/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
+replace-file-content /etc/php/8.2/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php8.2-fpm.sock"
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"
   cat <<EOF > /usr/local/bin/php.sh
 #!/bin/bash -e
 mkdir -p /run/php
-/usr/sbin/php-fpm7.4 --nodaemonize --fpm-config /etc/php/7.4/fpm/php-fpm.conf
+/usr/sbin/php-fpm8.2 --nodaemonize --fpm-config /etc/php/8.2/fpm/php-fpm.conf
 EOF
   chmod +x /usr/local/bin/php.sh
 else
   echo "Starting service"
-  service php7.4-fpm start
+  service php8.2-fpm start
 
   echo "Enabling autostart"
-  systemctl enable php7.4-fpm --now
+  systemctl enable php8.2-fpm --now
 fi
 
 mkdir -p /opt/install/
-crudini --set /opt/install/env.properties php version "7.4"
+crudini --set /opt/install/env.properties php version "8.2"
 crudini --set /opt/install/env.properties php type "fpm"
