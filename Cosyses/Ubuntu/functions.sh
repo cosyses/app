@@ -10,5 +10,6 @@ for functionFile in "${functionFiles[@]}"; do
   chmod +x "/usr/local/bin/${functionScriptName}"
 done
 
+install-package sudo
 install-package apt-utils
 install-package dialog
