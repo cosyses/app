@@ -99,7 +99,7 @@ xdebug.discover_client_host=0
 xdebug.client_host=${remoteHost}
 xdebug.client_port=${remotePort}
 EOFXA
-if [[ -n $(get-installed-package-version apache2) ]]; then
+if [[ -n \$(get-installed-package-version apache2) ]]; then
   echo "Reloading Apache"
   service apache2 reload
 fi
@@ -121,7 +121,7 @@ cat <<EOF | tee /usr/local/bin/xdebug-deactivate > /dev/null
 cat <<EOFXD | sudo tee ${phpConfigurationFile} > /dev/null
 ;zend_extension=${moduleFile}
 EOFXD
-if [[ -n $(get-installed-package-version apache2) ]]; then
+if [[ -n \$(get-installed-package-version apache2) ]]; then
   echo "Reloading Apache"
   service apache2 reload
 fi
