@@ -2,4 +2,4 @@
 
 packageName="${1}"
 
-/usr/bin/dpkg-query -W "${packageName}" 2>/dev/null | grep -P "^${packageName}" | cat | awk '{print $2}'
+/usr/bin/dpkg-query -W "${packageName}" 2>/dev/null | grep -P "^${packageName}" | cat | awk '{print $2}' | tr -d '\n'

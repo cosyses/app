@@ -93,10 +93,10 @@ echo ";zend_extension=${moduleFile}" > "${phpConfigurationFile}"
 phpenmod xdebug
 
 if [[ ! -f /.dockerenv ]]; then
-  if [[ $(get-installed-package-version apache2 | wc -l) -gt 0 ]]; then
+  if [[ -n $(get-installed-package-version apache2) ]]; then
     service apache2 restart
   fi
-  if [[ $(get-installed-package-version nginx | wc -l) -gt 0 ]]; then
+  if [[ -n $(get-installed-package-version nginx) ]]; then
     service nginx restart
   fi
 fi
@@ -112,11 +112,13 @@ xdebug.discover_client_host=0
 xdebug.client_host=${remoteHost}
 xdebug.client_port=${remotePort}
 EOFXA
-if [[ \$(get-installed-package-version apache2 | wc -l) -gt 0 ]]; then
+if [[ -n $(get-installed-package-version apache2) ]]; then
+  echo "Reloading Apache"
   service apache2 reload
 fi
-if [[ \$(get-installed-package-version nginx | wc -l) -gt 0 ]]; then
-  service nginx reload
+if [[ -n \$(get-installed-package-version php${phpVersion}-fpm) ]]; then
+  echo "Reloading FPM"
+  kill -USR2 $(ps aux | grep "php-fpm: master" | grep -v "grep php-fpm: master" | awk '{print $2}')
 fi
 export PHP_IDE_CONFIG="serverName=cli"
 EOF
@@ -132,11 +134,13 @@ cat <<EOF | tee /usr/local/bin/xdebug-deactivate > /dev/null
 cat <<EOFXD | sudo tee ${phpConfigurationFile} > /dev/null
 ;zend_extension=${moduleFile}
 EOFXD
-if [[ \$(get-installed-package-version apache2 | wc -l) -gt 0 ]]; then
+if [[ -n $(get-installed-package-version apache2) ]]; then
+  echo "Reloading Apache"
   service apache2 reload
 fi
-if [[ \$(get-installed-package-version nginx | wc -l) -gt 0 ]]; then
-  service nginx reload
+if [[ -n \$(get-installed-package-version php${phpVersion}-fpm) ]]; then
+  echo "Reloading FPM"
+  kill -USR2 $(ps aux | grep "php-fpm: master" | grep -v "grep php-fpm: master" | awk '{print $2}')
 fi
 EOF
 

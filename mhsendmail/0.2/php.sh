@@ -66,12 +66,12 @@ if [[ -n $(which phpenmod) ]]; then
 fi
 
 if [[ ! -f /.dockerenv ]]; then
-  if [[ $(get-installed-package-version apache2 | wc -l) -gt 0 ]]; then
+  if [[ -n $(get-installed-package-version apache2) ]]; then
     echo "Restarting Apache"
     service apache2 restart
   fi
 
-  if [[ $(get-installed-package-version nginx | wc -l) -gt 0 ]]; then
+  if [[ -n $(get-installed-package-version nginx) ]]; then
     echo "Restarting Nginx"
     service nginx restart
   fi
