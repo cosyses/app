@@ -27,7 +27,7 @@ OPTIONS:
   --serverAdmin    Server admin, default: webmaster@<server name>
   --append         Append to existing configuration if configuration file already exists (yes/no), default: no
 
-Example: ${scriptFileName} --serverName project01.net
+Example: ${scriptFileName} --serverName project01.net --proxyHost remote --proxyPort 8080
 EOF
 }
 

@@ -12,22 +12,22 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help            Show this message
-  --httpPort        HTTP port, default: 80
-  --webUser         Web user, default: www-data
-  --webGroup        Web group, default: www-data
-  --proxyHostPath   Proxy host path, default: /
-  --proxyProtocol   Proxy protocol, default: http
-  --proxyHost       Proxy host
-  --proxyPort       Proxy port, default: 80 (http) or 443 (https)
-  --proxyPath       Proxy path, default: /
-  --logPath         Log path, default: /var/log/apache2
-  --logLevel        Log level, default: warn
-  --serverName      Server name
-  --serverAdmin     Server admin, default: webmaster@<server name>
-  --append          Append to existing configuration if configuration file already exists (yes/no), default: no
+  --help           Show this message
+  --httpPort       HTTP port, default: 80
+  --webUser        Web user, default: www-data
+  --webGroup       Web group, default: www-data
+  --proxyHostPath  Proxy host path, default: /
+  --proxyProtocol  Proxy protocol, default: http
+  --proxyHost      Proxy host
+  --proxyPort      Proxy port, default: 80 (http) or 443 (https)
+  --proxyPath      Proxy path, default: /
+  --logPath        Log path, default: /var/log/apache2
+  --logLevel       Log level, default: warn
+  --serverName     Server name
+  --serverAdmin    Server admin, default: webmaster@<server name>
+  --append         Append to existing configuration if configuration file already exists (yes/no), default: no
 
-Example: ${scriptFileName} --serverName project01.net
+Example: ${scriptFileName} --serverName project01.net --proxyHost remote --proxyPort 8080
 EOF
 }
 

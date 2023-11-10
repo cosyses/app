@@ -65,6 +65,8 @@ if [[ -z "${basicAuthUserFilePath}" ]]; then
   basicAuthUserFilePath="/var/www"
 fi
 
+install-package apache2-utils
+
 if [[ ! -d "${basicAuthUserFilePath}" ]]; then
   echo "Creating basic auth path: ${basicAuthUserFilePath}"
   mkdir -p "${basicAuthUserFilePath}"
@@ -80,16 +82,19 @@ fi
 
 basicAuthUserFile="${basicAuthUserFilePath}/${serverName}.htpasswd"
 
-echo "Adding basic user in file at: ${basicAuthUserFile}"
 if [[ -f "${basicAuthUserFile}" ]]; then
+  echo "Using basic user in file at: ${basicAuthUserFile}"
+  set +e
   $(htpasswd -vb "${basicAuthUserFile}" "${basicAuthUserName}" "${basicAuthPassword}" >/dev/null 2>&1)
   result=$?
+  set -e
   if [[ "${result}" -ne 0 ]]; then
     htpasswd -b "${basicAuthUserFile}" "${basicAuthUserName}" "${basicAuthPassword}"
   else
     echo "User already added"
   fi
 else
+  echo "Adding basic user in file at: ${basicAuthUserFile}"
   htpasswd -b -c "${basicAuthUserFile}" "${basicAuthUserName}" "${basicAuthPassword}"
 fi
 

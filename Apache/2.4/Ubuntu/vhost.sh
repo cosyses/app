@@ -301,14 +301,94 @@ else
     fi
   else
     if [[ -n "${basicAuthUserName}" ]] && [[ "${basicAuthUserName}" != "-" ]]; then
+      if [[ -n "${fpmHostName}" ]] && [[ "${fpmHostName}" != "-" ]] && [[ -n "${fpmHostPort}" ]] && [[ "${fpmHostPort}" != "-" ]]; then
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/http-path-fpm-basic-auth.sh" \
+          --httpPort "${httpPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --fpmHostName "${fpmHostName}" \
+          --fpmHostPort "${fpmHostPort}" \
+          --basicAuthUserName "${basicAuthUserName}" \
+          --basicAuthPassword "${basicAuthPassword}" \
+          --basicAuthUserFilePath "${basicAuthUserFilePath}" \
+          --append yes
+      else
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/http-path-basic-auth.sh" \
+          --httpPort "${httpPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --basicAuthUserName "${basicAuthUserName}" \
+          --basicAuthPassword "${basicAuthPassword}" \
+          --basicAuthUserFilePath "${basicAuthUserFilePath}" \
+          --append yes
+      fi
+    else
+      if [[ -n "${fpmHostName}" ]] && [[ "${fpmHostName}" != "-" ]] && [[ -n "${fpmHostPort}" ]] && [[ "${fpmHostPort}" != "-" ]]; then
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/http-path-fpm.sh" \
+          --httpPort "${httpPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --fpmHostName "${fpmHostName}" \
+          --fpmHostPort "${fpmHostPort}" \
+          --append yes
+      else
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/http-path.sh" \
+          --httpPort "${httpPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --append yes
+      fi
+    fi
+  fi
+fi
+
+if [[ ${sslTerminated} == "no" ]]; then
+  if [[ -n "${proxyHost}" ]] && [[ "${proxyHost}" != "-" ]]; then
+    if [[ -n "${basicAuthUserName}" ]] && [[ "${basicAuthUserName}" != "-" ]]; then
       cosyses \
         --applicationName "${applicationName}" \
         --applicationVersion "${applicationVersion}" \
-        --applicationScript "vhost/http-path-basic-auth.sh" \
-        --httpPort "${httpPort}" \
-        --webPath "${webPath}" \
+        --applicationScript "vhost/ssl-proxy-basic-auth.sh" \
+        --sslPort "${sslPort}" \
         --webUser "${webUser}" \
         --webGroup "${webGroup}" \
+        --proxyHostPath "${proxyHostPath}" \
+        --proxyProtocol "${proxyProtocol}" \
+        --proxyHost "${proxyHost}" \
+        --proxyPort "${proxyPort}" \
+        --proxyPath "${proxyPath}" \
         --logPath "${logPath}" \
         --logLevel "${logLevel}" \
         --serverName "${serverName}" \
@@ -321,110 +401,92 @@ else
       cosyses \
         --applicationName "${applicationName}" \
         --applicationVersion "${applicationVersion}" \
-        --applicationScript "vhost/http-path.sh" \
-        --httpPort "${httpPort}" \
-        --webPath "${webPath}" \
+        --applicationScript "vhost/ssl-proxy.sh" \
+        --sslPort "${sslPort}" \
         --webUser "${webUser}" \
         --webGroup "${webGroup}" \
+        --proxyHostPath "${proxyHostPath}" \
+        --proxyProtocol "${proxyProtocol}" \
+        --proxyHost "${proxyHost}" \
+        --proxyPort "${proxyPort}" \
+        --proxyPath "${proxyPath}" \
         --logPath "${logPath}" \
         --logLevel "${logLevel}" \
         --serverName "${serverName}" \
         --serverAdmin "${serverAdmin}" \
         --append yes
     fi
-  fi
-fi
-
-if [[ -n "${proxyHost}" ]] && [[ "${proxyHost}" != "-" ]]; then
-  if [[ -n "${basicAuthUserName}" ]] && [[ "${basicAuthUserName}" != "-" ]]; then
-    cosyses \
-      --applicationName "${applicationName}" \
-      --applicationVersion "${applicationVersion}" \
-      --applicationScript "vhost/ssl-proxy-basic-auth.sh" \
-      --sslPort "${sslPort}" \
-      --webUser "${webUser}" \
-      --webGroup "${webGroup}" \
-      --proxyHostPath "${proxyHostPath}" \
-      --proxyProtocol "${proxyProtocol}" \
-      --proxyHost "${proxyHost}" \
-      --proxyPort "${proxyPort}" \
-      --proxyPath "${proxyPath}" \
-      --logPath "${logPath}" \
-      --logLevel "${logLevel}" \
-      --serverName "${serverName}" \
-      --serverAdmin "${serverAdmin}" \
-      --basicAuthUserName "${basicAuthUserName}" \
-      --basicAuthPassword "${basicAuthPassword}" \
-      --basicAuthUserFilePath "${basicAuthUserFilePath}" \
-      --append yes
   else
-    cosyses \
-      --applicationName "${applicationName}" \
-      --applicationVersion "${applicationVersion}" \
-      --applicationScript "vhost/ssl-proxy.sh" \
-      --sslPort "${sslPort}" \
-      --webUser "${webUser}" \
-      --webGroup "${webGroup}" \
-      --proxyHostPath "${proxyHostPath}" \
-      --proxyProtocol "${proxyProtocol}" \
-      --proxyHost "${proxyHost}" \
-      --proxyPort "${proxyPort}" \
-      --proxyPath "${proxyPath}" \
-      --logPath "${logPath}" \
-      --logLevel "${logLevel}" \
-      --serverName "${serverName}" \
-      --serverAdmin "${serverAdmin}" \
-      --append yes
-  fi
-else
-  if [[ -n "${basicAuthUserName}" ]] && [[ "${basicAuthUserName}" != "-" ]]; then
-    cosyses \
-      --applicationName "${applicationName}" \
-      --applicationVersion "${applicationVersion}" \
-      --applicationScript "vhost/ssl-path-basic-auth.sh" \
-      --sslPort "${sslPort}" \
-      --webPath "${webPath}" \
-      --webUser "${webUser}" \
-      --webGroup "${webGroup}" \
-      --logPath "${logPath}" \
-      --logLevel "${logLevel}" \
-      --serverName "${serverName}" \
-      --serverAdmin "${serverAdmin}" \
-      --basicAuthUserName "${basicAuthUserName}" \
-      --basicAuthPassword "${basicAuthPassword}" \
-      --basicAuthUserFilePath "${basicAuthUserFilePath}" \
-      --append yes
-  else
-    if [[ -n "${fpmHostName}" ]] && [[ "${fpmHostName}" != "-" ]] && [[ -n "${fpmHostPort}" ]] && [[ "${fpmHostPort}" != "-" ]]; then
-      cosyses \
-        --applicationName "${applicationName}" \
-        --applicationVersion "${applicationVersion}" \
-        --applicationScript "vhost/ssl-path-fpm.sh" \
-        --sslPort "${sslPort}" \
-        --webPath "${webPath}" \
-        --webUser "${webUser}" \
-        --webGroup "${webGroup}" \
-        --logPath "${logPath}" \
-        --logLevel "${logLevel}" \
-        --serverName "${serverName}" \
-        --serverAdmin "${serverAdmin}" \
-        --fpmHostName "${fpmHostName}" \
-        --fpmHostPort "${fpmHostPort}" \
-        --append yes
+    if [[ -n "${basicAuthUserName}" ]] && [[ "${basicAuthUserName}" != "-" ]]; then
+      if [[ -n "${fpmHostName}" ]] && [[ "${fpmHostName}" != "-" ]] && [[ -n "${fpmHostPort}" ]] && [[ "${fpmHostPort}" != "-" ]]; then
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/ssl-path-fpm-basic-auth.sh" \
+          --sslPort "${sslPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --fpmHostName "${fpmHostName}" \
+          --fpmHostPort "${fpmHostPort}" \
+          --basicAuthUserName "${basicAuthUserName}" \
+          --basicAuthPassword "${basicAuthPassword}" \
+          --basicAuthUserFilePath "${basicAuthUserFilePath}" \
+          --append yes
+      else
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/ssl-path-basic-auth.sh" \
+          --sslPort "${sslPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --basicAuthUserName "${basicAuthUserName}" \
+          --basicAuthPassword "${basicAuthPassword}" \
+          --basicAuthUserFilePath "${basicAuthUserFilePath}" \
+          --append yes
+      fi
     else
-      cosyses \
-        --applicationName "${applicationName}" \
-        --applicationVersion "${applicationVersion}" \
-        --applicationScript "vhost/ssl-path.sh" \
-        --sslPort "${sslPort}" \
-        --webPath "${webPath}" \
-        --webUser "${webUser}" \
-        --webGroup "${webGroup}" \
-        --logPath "${logPath}" \
-        --logLevel "${logLevel}" \
-        --serverName "${serverName}" \
-        --serverAdmin "${serverAdmin}" \
-        --append yes
+      if [[ -n "${fpmHostName}" ]] && [[ "${fpmHostName}" != "-" ]] && [[ -n "${fpmHostPort}" ]] && [[ "${fpmHostPort}" != "-" ]]; then
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/ssl-path-fpm.sh" \
+          --sslPort "${sslPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --fpmHostName "${fpmHostName}" \
+          --fpmHostPort "${fpmHostPort}" \
+          --append yes
+      else
+        cosyses \
+          --applicationName "${applicationName}" \
+          --applicationVersion "${applicationVersion}" \
+          --applicationScript "vhost/ssl-path.sh" \
+          --sslPort "${sslPort}" \
+          --webPath "${webPath}" \
+          --webUser "${webUser}" \
+          --webGroup "${webGroup}" \
+          --logPath "${logPath}" \
+          --logLevel "${logLevel}" \
+          --serverName "${serverName}" \
+          --serverAdmin "${serverAdmin}" \
+          --append yes
+      fi
     fi
   fi
 fi
@@ -436,5 +498,8 @@ fi
 
 if [[ ! -f /.dockerenv ]]; then
   echo "Restarting Apache"
+  service apache2 restart
+else
+  echo "Reloading Apache"
   service apache2 reload
 fi
