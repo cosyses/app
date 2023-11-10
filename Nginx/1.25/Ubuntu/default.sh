@@ -94,4 +94,7 @@ EOF
 if [[ ! -f /.dockerenv ]]; then
   echo "Restarting Nginx"
   service nginx restart
+else
+  echo "Reloading Nginx"
+  nginx -s reload
 fi
