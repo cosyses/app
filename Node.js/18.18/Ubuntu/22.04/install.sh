@@ -18,18 +18,9 @@ Example: ${scriptFileName}
 EOF
 }
 
-install-package build-essential
+add-gpg-repository nodejs.list https://deb.nodesource.com/node_18.x nodistro main https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 
-mkdir -p /tmp/node.js
-cd /tmp/node.js
-wget -q https://nodejs.org/dist/v18.18.2/node-v18.18.2.tar.gz
-tar xfz node-v18.18.2.tar.gz
-cd node-v18.18.2
-./configure
-make
-make install
-cd /
-rm -rf /tmp/node.js
+install-package nodejs 18.18
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/nodejs.sh"

@@ -18,18 +18,9 @@ Example: ${scriptFileName}
 EOF
 }
 
-install-package build-essential
+add-gpg-repository nodejs.list https://deb.nodesource.com/node_20.x nodistro main https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 
-mkdir -p /tmp/node.js
-cd /tmp/node.js
-wget -q https://nodejs.org/dist/v20.9.0/node-v20.9.0.tar.gz
-tar xfz node-v20.9.0.tar.gz
-cd node-v20.9.0
-./configure
-make
-make install
-cd /
-rm -rf /tmp/node.js
+install-package nodejs 20.9
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/nodejs.sh"

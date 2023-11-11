@@ -18,9 +18,9 @@ Example: ${scriptFileName}
 EOF
 }
 
-add-gpg-repository nodejs.list https://deb.nodesource.com/node_19.x jammy main https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+add-gpg-repository nodejs.list https://deb.nodesource.com/node_21.x nodistro main https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 
-install-package nodejs 19.9
+install-package nodejs 21.1
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/nodejs.sh"
@@ -32,4 +32,4 @@ EOF
 fi
 
 mkdir -p /opt/install/
-crudini --set /opt/install/env.properties nodejs version "19.9"
+crudini --set /opt/install/env.properties nodejs version "20.9"
