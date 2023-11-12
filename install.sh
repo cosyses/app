@@ -73,15 +73,21 @@ elif [[ -f "${cosysesPath}/${applicationName}/${distribution}/${applicationScrip
 elif [[ -f "${cosysesPath}/${applicationName}/${applicationScript}" ]]; then
   applicationScriptPath="${cosysesPath}/${applicationName}"
 elif [[ -z "${applicationVersion}" ]]; then
+  applicationScriptPath=
   if [[ -d "${cosysesPath}/${applicationName}" ]]; then
-    applicationVersion=$(find "${cosysesPath}/${applicationName}"/* -maxdepth 1 -type d -exec basename {} \; | sort --version-sort | tail -n1 | tr -d '\r' | tr -d '\n')
-    if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
-      applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"
-    elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" ]]; then
-      applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}"
-    elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" ]]; then
-      applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}"
-    fi
+    applicationVersions=( $(find "${cosysesPath}/${applicationName}"/* -mindepth 0 -maxdepth 0 -type d -exec basename {} \; | sort --version-sort -r ) )
+    for applicationVersion in "${applicationVersions[@]}"; do
+      if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
+        applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"
+        break
+      elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" ]]; then
+        applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}"
+        break
+      elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" ]]; then
+        applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}"
+        break
+      fi
+    done
   fi
 fi
 
