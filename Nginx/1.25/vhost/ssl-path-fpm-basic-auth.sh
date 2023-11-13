@@ -24,6 +24,9 @@ OPTIONS:
   --serverName             Server name
   --fpmHostName            Host name of PHP FPM instance, default: localhost
   --fpmHostPort            Port of PHP FPM instance, default: 9000
+  --rootPath               Path of root, default: /
+  --rootPathIndex          Index of root path, default: /index.php
+  --phpPath                Path of PHP, default: \.php$
   --basicAuthUserName      Basic auth user name
   --basicAuthPassword      Basic auth password
   --basicAuthUserFilePath  Basic auth user file path, default: /var/www
@@ -65,6 +68,9 @@ fpmHostPort=
 basicAuthUserName=
 basicAuthPassword=
 basicAuthUserFilePath=
+rootPath=
+rootPathIndex=
+phpPath=
 append=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -124,6 +130,18 @@ fi
 
 if [[ -z "${fpmHostPort}" ]]; then
   fpmHostPort="9000"
+fi
+
+if [[ -z "${rootPath}" ]]; then
+  rootPath="/"
+fi
+
+if [[ -z "${rootPathIndex}" ]]; then
+  rootPathIndex="/index.php"
+fi
+
+if [[ -z "${phpPath}" ]]; then
+  phpPath="\.php\$"
 fi
 
 if [[ -z "${basicAuthUserName}" ]]; then
@@ -195,17 +213,18 @@ server {
   ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP:!aNULL:!MD5;
   ssl_prefer_server_ciphers on;
-  location / {
-    try_files \$uri \$uri/ /index.html;
+  location ${rootPath} {
+    try_files \$uri \$uri/ ${rootPathIndex};
     auth_basic "${serverName}";
     auth_basic_user_file ${basicAuthUserFile};
   }
-  location ~ \.php$ {
+  location ~ ${phpPath} {
     try_files \$uri =404;
     fastcgi_split_path_info ^(.+\.php)(/.+)\$;
     fastcgi_pass ${fpmHostName}:${fpmHostPort};
     include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+    fastcgi_param DOCUMENT_ROOT \$realpath_root;
     fastcgi_param PATH_INFO \$fastcgi_path_info;
   }
   error_log ${logPath}/${serverName}-nginx-ssl-error.log ${logLevel};

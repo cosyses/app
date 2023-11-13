@@ -174,7 +174,7 @@ elif [[ "${verbose}" == 1 ]]; then
   echo "Directory: ${composerDirectory} already owned by user: ${userName}:${userGroup}"
 fi
 
-if [[ -f /etc/sudoers.d/ ]]; then
+if [[ -d /etc/sudoers.d/ ]]; then
   if [[ "${sudoWithPassword}" == 0 ]] && [[ "${disallowSudo}" == 0 ]]; then
     if [[ ! -f "/etc/sudoers.d/${userName}" ]] || [[ $(grep "${userName} ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/${userName}" | wc -l) -eq 0 ]]; then
       echo "Allow sudo without password for user: ${userName}"

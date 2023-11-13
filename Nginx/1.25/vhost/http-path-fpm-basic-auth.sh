@@ -22,6 +22,9 @@ OPTIONS:
   --serverName             Server name
   --fpmHostName            Host name of PHP FPM instance, default: localhost
   --fpmHostPort            Port of PHP FPM instance, default: 9000
+  --rootPath               Path of root, default: /
+  --rootPathIndex          Index of root path, default: /index.php
+  --phpPath                Path of PHP, default: \.php$
   --basicAuthUserName      Basic auth user name
   --basicAuthPassword      Basic auth password
   --basicAuthUserFilePath  Basic auth user file path, default: /var/www

@@ -33,6 +33,9 @@ OPTIONS:
   --basicAuthUserFilePath  Basic auth user file path (optional), default: /var/www
   --fpmHostName            Host name of PHP FPM instance
   --fpmHostPort            Port of PHP FPM instance
+  --rootPath               Path of root, default: /
+  --rootPathIndex          Index of root path, default: /index.php
+  --phpPath                Path of PHP, default: \.php$
   --overwrite              Overwrite existing files (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --sslTerminated no --forceSsl yes
@@ -77,6 +80,9 @@ basicAuthPassword=
 basicAuthUserFilePath=
 fpmHostName=
 fpmHostPort=
+rootPath=
+rootPathIndex=
+phpPath=
 overwrite=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -164,6 +170,27 @@ fi
 
 if [[ -z "${basicAuthUserFilePath}" ]]; then
   basicAuthUserFilePath="/var/www"
+fi
+
+if [[ -z "${rootPath}" ]]; then
+  rootPath="/"
+else
+  rootPath="${rootPath//\\/\\\\}"
+  rootPath="${rootPath//$/\\\\$}"
+fi
+
+if [[ -z "${rootPathIndex}" ]]; then
+  rootPathIndex="/index.php"
+else
+  rootPathIndex="${rootPathIndex//\\/\\\\}"
+  rootPathIndex="${rootPathIndex//$/\\\\$}"
+fi
+
+if [[ -z "${phpPath}" ]]; then
+  phpPath="\.php\$"
+else
+  phpPath="${phpPath//\\/\\\\}"
+  phpPath="${phpPath//$/\\\\$}"
 fi
 
 if [[ -z "${overwrite}" ]]; then
@@ -414,6 +441,9 @@ if [[ ${sslTerminated} == "no" ]]; then
           --serverName "${serverName}" \
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
+          --rootPath "${rootPath}" \
+          --rootPathIndex "${rootPathIndex}" \
+          --phpPath "${phpPath}" \
           --basicAuthUserName "${basicAuthUserName}" \
           --basicAuthPassword "${basicAuthPassword}" \
           --basicAuthUserFilePath "${basicAuthUserFilePath}" \
@@ -450,6 +480,9 @@ if [[ ${sslTerminated} == "no" ]]; then
           --serverName "${serverName}" \
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
+          --rootPath "${rootPath}" \
+          --rootPathIndex "${rootPathIndex}" \
+          --phpPath "${phpPath}" \
           --append yes
       else
         cosyses \

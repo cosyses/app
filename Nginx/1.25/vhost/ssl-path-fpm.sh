@@ -12,19 +12,22 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help         Show this message
-  --sslPort      SSL port, default: 443
-  --sslCertFile  SSL certificate file, default: /etc/ssl/certs/ssl-cert-snakeoil.pem
-  --sslKeyFile   SSL key file, default: /etc/ssl/private/ssl-cert-snakeoil.key
-  --webPath      Web path
-  --webUser      Web user, default: www-data
-  --webGroup     Web group, default: www-data
-  --logPath      Log path, default: /var/log/nginx
-  --logLevel     Log level, default: warn
-  --serverName   Server name
-  --fpmHostName  Host name of PHP FPM instance, default: localhost
-  --fpmHostPort  Port of PHP FPM instance, default: 9000
-  --append       Append to existing configuration if configuration file already exists (yes/no), default: no
+  --help           Show this message
+  --sslPort        SSL port, default: 443
+  --sslCertFile    SSL certificate file, default: /etc/ssl/certs/ssl-cert-snakeoil.pem
+  --sslKeyFile     SSL key file, default: /etc/ssl/private/ssl-cert-snakeoil.key
+  --webPath        Web path
+  --webUser        Web user, default: www-data
+  --webGroup       Web group, default: www-data
+  --logPath        Log path, default: /var/log/nginx
+  --logLevel       Log level, default: warn
+  --serverName     Server name
+  --fpmHostName    Host name of PHP FPM instance, default: localhost
+  --fpmHostPort    Port of PHP FPM instance, default: 9000
+  --rootPath       Path of root, default: /
+  --rootPathIndex  Index of root path, default: /index.php
+  --phpPath        Path of PHP, default: \.php$
+  --append         Append to existing configuration if configuration file already exists (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm
 EOF
@@ -59,6 +62,9 @@ logLevel=
 serverName=
 fpmHostName=
 fpmHostPort=
+rootPath=
+rootPathIndex=
+phpPath=
 append=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -120,6 +126,18 @@ if [[ -z "${fpmHostPort}" ]]; then
   fpmHostPort="9000"
 fi
 
+if [[ -z "${rootPath}" ]]; then
+  rootPath="/"
+fi
+
+if [[ -z "${rootPathIndex}" ]]; then
+  rootPathIndex="/index.php"
+fi
+
+if [[ -z "${phpPath}" ]]; then
+  phpPath="\.php\$"
+fi
+
 if [[ -z "${append}" ]]; then
   append="no"
 fi
@@ -165,15 +183,16 @@ server {
   ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP:!aNULL:!MD5;
   ssl_prefer_server_ciphers on;
-  location / {
-    try_files \$uri \$uri/ /index.html;
+  location ${rootPath} {
+    try_files \$uri \$uri/ ${rootPathIndex};
   }
-  location ~ \.php$ {
+  location ~ ${phpPath} {
     try_files \$uri =404;
     fastcgi_split_path_info ^(.+\.php)(/.+)\$;
     fastcgi_pass ${fpmHostName}:${fpmHostPort};
     include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+    fastcgi_param DOCUMENT_ROOT \$realpath_root;
     fastcgi_param PATH_INFO \$fastcgi_path_info;
   }
   error_log ${logPath}/${serverName}-nginx-ssl-error.log ${logLevel};

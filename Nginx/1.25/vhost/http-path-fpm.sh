@@ -12,17 +12,20 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help         Show this message
-  --httpPort     HTTP port, default: 80
-  --webPath      Web path
-  --webUser      Web user, default: www-data
-  --webGroup     Web group, default: www-data
-  --logPath      Log path, default: /var/log/nginx
-  --logLevel     Log level, default: warn
-  --serverName   Server name
-  --fpmHostName  Host name of PHP FPM instance, default: localhost
-  --fpmHostPort  Port of PHP FPM instance, default: 9000
-  --append       Append to existing configuration if configuration file already exists (yes/no), default: no
+  --help           Show this message
+  --httpPort       HTTP port, default: 80
+  --webPath        Web path
+  --webUser        Web user, default: www-data
+  --webGroup       Web group, default: www-data
+  --logPath        Log path, default: /var/log/nginx
+  --logLevel       Log level, default: warn
+  --serverName     Server name
+  --fpmHostName    Host name of PHP FPM instance, default: localhost
+  --fpmHostPort    Port of PHP FPM instance, default: 9000
+  --rootPath       Path of root, default: /
+  --rootPathIndex  Index of root path, default: /index.php
+  --phpPath        Path of PHP, default: \.php$
+  --append         Append to existing configuration if configuration file already exists (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm
 EOF
