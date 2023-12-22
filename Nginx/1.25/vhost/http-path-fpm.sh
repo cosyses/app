@@ -58,6 +58,9 @@ logLevel=
 serverName=
 fpmHostName=
 fpmHostPort=
+rootPath=
+rootPathIndex=
+phpPath=
 append=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -101,6 +104,18 @@ if [[ -z "${fpmHostPort}" ]]; then
   fpmHostPort="9000"
 fi
 
+if [[ -z "${rootPath}" ]]; then
+  rootPath="/"
+fi
+
+if [[ -z "${rootPathIndex}" ]]; then
+  rootPathIndex="/index.php"
+fi
+
+if [[ -z "${phpPath}" ]]; then
+  phpPath="\.php\$"
+fi
+
 if [[ -z "${append}" ]]; then
   append="no"
 fi
@@ -137,17 +152,18 @@ server {
   listen ${httpPort};
   server_name ${serverName};
   root ${webPath};
-  index index.php index.html index.htm;
-  error_page 500 502 503 504  /50x.html;
-  location / {
-    try_files \$uri \$uri/ /index.html;
+  index ${rootPathIndex};
+  error_page 500 502 503 504 /50x.html;
+  location ${rootPath} {
+    try_files \$uri \$uri/ ${rootPathIndex};
   }
-  location ~ \.php$ {
+  location ~ ${phpPath} {
     try_files \$uri =404;
     fastcgi_split_path_info ^(.+\.php)(/.+)\$;
     fastcgi_pass ${fpmHostName}:${fpmHostPort};
     include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+    fastcgi_param DOCUMENT_ROOT \$realpath_root;
     fastcgi_param PATH_INFO \$fastcgi_path_info;
   }
   error_log ${logPath}/${serverName}-nginx-http-error.log ${logLevel};

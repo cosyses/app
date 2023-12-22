@@ -65,12 +65,12 @@ logLevel=
 serverName=
 fpmHostName=
 fpmHostPort=
-basicAuthUserName=
-basicAuthPassword=
-basicAuthUserFilePath=
 rootPath=
 rootPathIndex=
 phpPath=
+basicAuthUserName=
+basicAuthPassword=
+basicAuthUserFilePath=
 append=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -204,8 +204,8 @@ server {
   listen ${sslPort} ssl;
   server_name ${serverName};
   root ${webPath};
-  index index.php index.html index.htm;
-  error_page 500 502 503 504  /50x.html;
+  index ${rootPathIndex};
+  error_page 500 502 503 504 /50x.html;
   ssl_certificate ${sslCertFile};
   ssl_certificate_key ${sslKeyFile};
   ssl_session_cache shared:SSL:10m;
