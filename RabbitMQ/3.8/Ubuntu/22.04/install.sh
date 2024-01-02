@@ -91,10 +91,3 @@ sudo -H -u rabbitmq bash -c "/usr/lib/rabbitmq/bin/rabbitmq-server"
 EOF
   chmod +x /usr/local/bin/rabbitmq.sh
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties rabbitmq version "3.8"
-crudini --set /opt/install/env.properties rabbitmq port "${port}"
-crudini --set /opt/install/env.properties rabbitmq management "${managementPort}"
-crudini --set /opt/install/env.properties rabbitmq adminUser "${adminUserName}"
-crudini --set /opt/install/env.properties rabbitmq adminPassword "${adminPassword}"

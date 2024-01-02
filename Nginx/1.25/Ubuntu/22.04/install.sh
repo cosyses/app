@@ -107,11 +107,6 @@ else
   service nginx start
 fi
 
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties nginx version "${applicationVersion}"
-crudini --set /opt/install/env.properties nginx httpPort "${httpPort}"
-crudini --set /opt/install/env.properties nginx sslPort "${sslPort}"
-
 cosyses \
   --applicationName "${applicationName}" \
   --applicationVersion "${applicationVersion}" \

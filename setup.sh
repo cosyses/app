@@ -166,13 +166,13 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
     sed -i -e "s/#baseurl=/baseurl=/g" /etc/yum.repos.d/epel.repo
     sed -i -e "s/metalink=/#metalink=/g" /etc/yum.repos.d/epel.repo
     yum makecache
-    requiredPackages=( crudini curl jq libcurl nss wget unzip )
+    requiredPackages=( curl jq libcurl nss wget unzip )
   elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-    requiredPackages=( crudini curl jq wget unzip )
+    requiredPackages=( curl jq wget unzip )
   elif [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     yum makecache
-    requiredPackages=( crudini curl jq libcurl nss wget unzip )
+    requiredPackages=( curl jq libcurl nss wget unzip )
   else
     >&2 echo "Unsupported OS: ${distribution}"
     exit 1

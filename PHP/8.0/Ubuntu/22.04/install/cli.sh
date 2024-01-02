@@ -65,7 +65,3 @@ tail -f /dev/null
 EOF
   chmod +x /usr/local/bin/php.sh
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties php version "8.0"
-crudini --set /opt/install/env.properties php type "cli"

@@ -100,9 +100,3 @@ sudo -H -u mongodb bash -c "/usr/bin/mongod -f /etc/mongod.conf --pidfilepath /v
 EOF
   chmod +x /usr/local/bin/mongodb.sh
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties mongodb version "5.0"
-crudini --set /opt/install/env.properties mongodb port "${port}"
-crudini --set /opt/install/env.properties mongodb rootUser "${adminUserName}"
-crudini --set /opt/install/env.properties mongodb rootPassword "${adminPassword}"

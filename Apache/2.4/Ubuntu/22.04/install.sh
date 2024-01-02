@@ -103,11 +103,6 @@ else
   service apache2 start
 fi
 
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties apache version "${applicationVersion}"
-crudini --set /opt/install/env.properties apache httpPort "${httpPort}"
-crudini --set /opt/install/env.properties apache sslPort "${sslPort}"
-
 cosyses \
   --applicationName "${applicationName}" \
   --applicationVersion "${applicationVersion}" \

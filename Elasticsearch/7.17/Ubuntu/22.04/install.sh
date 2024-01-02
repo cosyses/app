@@ -84,7 +84,3 @@ else
   echo "Adding autostart"
   systemctl enable elasticsearch.service
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties elasticsearch version "7.17"
-crudini --set /opt/install/env.properties elasticsearch port "${port}"

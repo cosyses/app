@@ -59,7 +59,3 @@ service elasticsearch restart
 
 echo "Adding autostart"
 systemctl enable elasticsearch.service
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties elasticsearch version "5.6"
-crudini --set /opt/install/env.properties elasticsearch port "${port}"

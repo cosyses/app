@@ -11,6 +11,3 @@ tail -f /dev/null
 EOF
   chmod +x /usr/local/bin/ruby.sh
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties ruby version "2.7"

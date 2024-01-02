@@ -68,7 +68,3 @@ else
   echo "Restarting service"
   service apache2 restart
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties php version "8.1"
-crudini --set /opt/install/env.properties php type "mod"

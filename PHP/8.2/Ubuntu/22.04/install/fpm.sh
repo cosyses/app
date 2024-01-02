@@ -90,7 +90,3 @@ else
   echo "Enabling autostart"
   systemctl enable php8.2-fpm --now
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties php version "8.2"
-crudini --set /opt/install/env.properties php type "fpm"

@@ -77,18 +77,16 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "Downloading libraries"
 install-package perl
+install-package psmisc
 install-package libaio1
 install-package libnuma1
 install-package libmecab2
 install-package libtinfo5
-install-package psmisc
-install-package-from-deb mysql-common 8.0.33-1ubuntu0.20.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-common_8.0.33-1ubuntu20.04_amd64.deb
-install-package-from-deb mysql-community-client-plugins 8.0.33-1ubuntu0.20.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-client-plugins_8.0.33-1ubuntu20.04_amd64.deb
-install-package-from-deb mysql-community-client-core 8.0.33-1ubuntu0.20.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-client-core_8.0.33-1ubuntu20.04_amd64.deb
-install-package-from-deb mysql-community-client 8.0.33-1ubuntu0.20.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-client_8.0.33-1ubuntu20.04_amd64.deb
-install-package-from-deb mysql-client 8.0.33-1ubuntu0.20.04  https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-client_8.0.33-1ubuntu20.04_amd64.deb
-install-package-from-deb mysql-community-server-core 8.0.33-1ubuntu0.20.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-server-core_8.0.33-1ubuntu20.04_amd64.deb
-install-package-from-deb mysql-community-server 8.0.33-1ubuntu0.20.04  https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-server_8.0.33-1ubuntu20.04_amd64.deb
+install-package-from-deb mysql-common 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-common_5.7.21-1ubuntu17.10_amd64.deb
+install-package-from-deb mysql-community-client 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-community-client_5.7.21-1ubuntu17.10_amd64.deb
+install-package-from-deb mysql-client 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-client_5.7.21-1ubuntu17.10_amd64.deb
+install-package-from-deb mysql-community-server 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-community-server_5.7.21-1ubuntu17.10_amd64.deb
+install-package-from-deb mysql-server 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-server_5.7.21-1ubuntu17.10_amd64.deb
 
 if [[ -f /.dockerenv ]]; then
   echo "Starting MySQL"

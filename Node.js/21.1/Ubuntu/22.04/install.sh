@@ -30,6 +30,3 @@ tail -f /dev/null
 EOF
   chmod +x /usr/local/bin/nodejs.sh
 fi
-
-mkdir -p /opt/install/
-crudini --set /opt/install/env.properties nodejs version "20.9"
