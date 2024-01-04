@@ -67,25 +67,19 @@ if [[ -z "${bindAddress}" ]]; then
   fi
 fi
 
+echo "Setting up installation"
+curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash -s -- --mariadb-server-version="mariadb-10.6" --os-type="ubuntu" --os-version="jammy"
+
 export DEBIAN_FRONTEND=noninteractive
 
 echo "Downloading libraries"
-install-package perl
-install-package psmisc
-install-package libaio1
-install-package libnuma1
-install-package libmecab2
-install-package libtinfo5
-install-package-from-deb mysql-common 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-common_5.7.21-1ubuntu17.10_amd64.deb
-install-package-from-deb mysql-community-client 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-community-client_5.7.21-1ubuntu17.10_amd64.deb
-install-package-from-deb mysql-client 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-client_5.7.21-1ubuntu17.10_amd64.deb
-install-package-from-deb mysql-community-server 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-community-server_5.7.21-1ubuntu17.10_amd64.deb
-install-package-from-deb mysql-server 5.7.21-1ubuntu17.10 https://repo.mysql.com/apt/pool/mysql-5.7/m/mysql-community/mysql-server_5.7.21-1ubuntu17.10_amd64.deb
+install-package mariadb-server 1:10.6
 
-if [[ -f /.dockerenv ]]; then
-  echo "Starting MySQL"
-  /usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
-fi
+echo "Setting port to: ${databaseRootPort}"
+add-file-content-after /etc/mysql/mariadb.conf.d/50-server.cnf "port = ${databaseRootPort}" "[mysqld]" 1
+
+echo "Starting MariaDB"
+/etc/init.d/mariadb start
 
 cosyses \
   --applicationName "${applicationName}" \
@@ -99,19 +93,34 @@ add-file-content-before /etc/security/limits.conf "mysql  hard  nofile  65535" "
 sysctl -p
 
 echo "Allowing binding from: ${bindAddress}"
-sed -i "s/bind-address.*/bind-address = ${bindAddress}/g" /etc/mysql/mysql.conf.d/mysqld.cnf
+replace-file-content /etc/mysql/mariadb.conf.d/50-server.cnf "bind-address            = ${bindAddress}" "bind-address            = 127.0.0.1"
+
+echo "Adding skipping of DNS lookup"
+replace-file-content /etc/mysql/mariadb.conf.d/50-server.cnf "skip-name-resolve" "#skip-name-resolve" 0
+
+echo "Stopping MariaDB"
+/etc/init.d/mariadb stop
 
 if [[ -f /.dockerenv ]]; then
-  echo "Stopping MySQL"
-  kill "$(cat /var/run/mysqld/mysqld.pid)"
-
-  echo "Creating start script at: /usr/local/bin/mysql.sh"
-  cat <<EOF > /usr/local/bin/mysql.sh
+  echo "Creating start script at: /usr/local/bin/mariadb.sh"
+  cat <<EOF > /usr/local/bin/mariadb.sh
 #!/bin/bash -e
-/usr/sbin/mysqld --user mysql --pid-file=/var/run/mysqld/mysqld.pid
+/usr/bin/install \
+  -m 755 \
+  -o mysql \
+  -g root \
+  -d /var/run/mysqld
+/usr/sbin/mysqld \
+  --basedir=/usr \
+  --datadir=/var/lib/mysql \
+  --plugin-dir=/usr/lib/mysql/plugin \
+  --user=mysql \
+  --skip-log-error \
+  --pid-file=/var/run/mysqld/mysqld.pid \
+  --socket=/var/run/mysqld/mysqld.sock
 EOF
-  chmod +x /usr/local/bin/mysql.sh
+  chmod +x /usr/local/bin/mariadb.sh
 else
-  echo "Restarting MySQL"
-  service mysql restart
+  echo "Starting MariaDB"
+  /etc/init.d/mariadb start
 fi

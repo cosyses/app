@@ -17,7 +17,6 @@ OPTIONS:
   --databaseRootPort      Server port, default: 3306
   --databaseRootPassword  User password, default: <generated>
   --bindAddress           Bind address, default: 127.0.0.1 or 0.0.0.0 if docker environment
-  --serverId              Server Id, default: 1
 
 Example: ${scriptFileName} --databaseRootPassword secret
 EOF
@@ -45,7 +44,6 @@ databaseRootHost=
 databaseRootPort=
 databaseRootPassword=
 bindAddress=
-serverId=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${databaseRootHost}" ]]; then
@@ -67,10 +65,6 @@ if [[ -z "${bindAddress}" ]]; then
   else
     bindAddress="127.0.0.1"
   fi
-fi
-
-if [[ -z "${serverId}" ]]; then
-  serverId="1"
 fi
 
 export DEBIAN_FRONTEND=noninteractive
