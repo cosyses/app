@@ -49,6 +49,13 @@ install-package coreutils
 
 echo "Preparing user: ${userName}"
 
+if [[ $(getent passwd | cat | tr ':' ' ' | awk '{print $1}' | grep -e "^${userName}$" | wc -l) -eq 0 ]]; then
+  echo "Creating user: ${userName}"
+  useradd -m -s /bin/bash "${userName}"
+elif [[ "${verbose}" == 1 ]]; then
+  echo "User: ${userName} already exists"
+fi
+
 userGroup=$(id -gn "${userName}")
 userHome=$(grep "${userName}" /etc/passwd | cut -d':' -f6)
 userBash=$(grep "${userName}" /etc/passwd | cut -d':' -f7)

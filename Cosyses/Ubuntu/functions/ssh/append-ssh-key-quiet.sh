@@ -7,7 +7,10 @@ while [ "${1}" ]; do
   home=$(awk -F: -v u="${1}" '$1==u{print $6}' /etc/passwd)
   fileName=$(basename "${file}")
 
-  mkdir -p -m 700 "${home}/.ssh"
+  if [[ ! -d "${home}/.ssh" ]]; then
+    mkdir -m 700 "${home}/.ssh"
+  fi
+
   touch "${home}/.ssh/authorized_keys"
 
   echo "# ${fileName}" >> "${home}/.ssh/authorized_keys"

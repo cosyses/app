@@ -6,9 +6,17 @@ shift
 echo "Using file: ${file}"
 while [ "${1}" ]; do
   home=$(awk -F: -v u="${1}" '$1==u{print $6}' /etc/passwd)
-  fileName=$(basename "${file}")
+  echo "User home at: ${home}"
 
-  mkdir -p -m 700 "${home}/.ssh"
+  fileName=$(basename "${file}")
+  echo "Using file name: ${fileName}"
+
+  if [[ ! -d "${home}/.ssh" ]]; then
+    echo "Creating directory at: ${home}/.ssh"
+    mkdir -m 700 "${home}/.ssh"
+  fi
+
+  echo "Checking authorization file at: ${home}/.ssh/authorized_keys"
   touch "${home}/.ssh/authorized_keys"
 
   echo "Adding public key to: ${home}/.ssh/authorized_keys"
