@@ -82,10 +82,10 @@ sysctl -p
 echo "Setting bind address to: ${bindAddress}"
 replace-file-content "/etc/redis/redis_${port}.conf" "bind ${bindAddress}" "bind 127.0.0.1" 0
 
-echo "Disabling protected mode"
-replace-file-content "/etc/redis/redis_${port}.conf" "protected-mode no" "protected-mode yes" 0
-
 if [[ -f /.dockerenv ]]; then
+  echo "Disabling protected mode"
+  replace-file-content "/etc/redis/redis_${port}.conf" "protected-mode no" "protected-mode yes" 0
+
   echo "Stopping Redis"
   "/etc/init.d/redis_${port}" stop
 
