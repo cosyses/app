@@ -15,7 +15,7 @@ OPTIONS:
   --help                  Show this message
   --databaseRootHost      Server host name, default: localhost
   --databaseRootPort      Server port, default: 3306
-  --databaseRootPassword  User password, default: <generated>
+  --databaseRootPassword  Root password, default: <generated>
   --bindAddress           Bind address, default: 127.0.0.1 or 0.0.0.0 if docker environment
 
 Example: ${scriptFileName} --databaseRootPassword secret
@@ -74,6 +74,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "Downloading libraries"
 install-package mariadb-server 1:10.6
+
+echo "Fix start script"
+# shellcheck disable=SC2016
+replace-file-content /etc/init.d/mariadb '[ -z "$datadir" ]' '[ -z "$datadir"]' 0
 
 echo "Setting port to: ${databaseRootPort}"
 add-file-content-after /etc/mysql/mariadb.conf.d/50-server.cnf "port = ${databaseRootPort}" "[mysqld]" 1
