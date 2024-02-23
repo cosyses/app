@@ -51,7 +51,11 @@ echo "Preparing user: ${userName}"
 
 if [[ $(getent passwd | cat | tr ':' ' ' | awk '{print $1}' | grep -e "^${userName}$" | wc -l) -eq 0 ]]; then
   echo "Creating user: ${userName}"
-  useradd -m -s /bin/bash "${userName}"
+  if [[ $(getent group "${userName}" | wc -l) -gt 0 ]]; then
+    useradd -m -g "${userName}" -s /bin/bash "${userName}"
+  else
+    useradd -m -s /bin/bash "${userName}"
+  fi
 elif [[ "${verbose}" == 1 ]]; then
   echo "User: ${userName} already exists"
 fi
