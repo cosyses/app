@@ -101,6 +101,6 @@ EOF
   echo "Enabling Varnish autostart"
   systemctl enable varnish.service
 
-  echo "Restarting Varnish"
+  echo "Starting Varnish"
   service varnish start
 fi

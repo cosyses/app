@@ -46,11 +46,6 @@ if [[ -z "${adminUserName}" ]]; then
   adminUserName="admin"
 fi
 
-if [[ -z "${adminPassword}" ]]; then
-  adminPassword=$(echo "${RANDOM}" | md5sum | head -c 32)
-  echo "Using generated password: ${adminPassword}"
-fi
-
 add-server-key-id "hkps://keys.openpgp.org" "0x0A9AF2115F4687BD29803A206B73A36E6026DFCA"
 add-server-key-id "keyserver.ubuntu.com" "F77F1EDA57EBB1CC"
 
@@ -81,6 +76,11 @@ rabbitmq-plugins enable rabbitmq_management
 echo "[{rabbit, [{loopback_users, []}, {tcp_listeners, [${port}]}]}, {rabbitmq_management, [{listener, [{port, ${managementPort}}]}]}]." > /etc/rabbitmq/rabbitmq.config
 
 service rabbitmq-server restart
+
+if [[ -z "${adminPassword}" ]]; then
+  adminPassword=$(echo "${RANDOM}" | md5sum | head -c 32)
+  echo "Using generated password: ${adminPassword}"
+fi
 
 rabbitmqctl add_user "${adminUserName}" "${adminPassword}"
 rabbitmqctl set_user_tags "${adminUserName}" administrator

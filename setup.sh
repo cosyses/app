@@ -168,7 +168,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
     yum makecache
     requiredPackages=( curl jq libcurl nss wget unzip )
   elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-    requiredPackages=( curl jq wget unzip )
+    requiredPackages=( bc curl jq wget unzip )
   elif [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     yum makecache
