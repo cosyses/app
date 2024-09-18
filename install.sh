@@ -11,7 +11,9 @@ usage()
 {
 cat >&2 << EOF
 
-usage: ${scriptFileName} options
+usage: cosyses [options]
+
+MODE:
 
 OPTIONS:
   --help                Show this message
@@ -19,7 +21,8 @@ OPTIONS:
   --applicationVersion  Version of application (optional)
   --applicationScript   Name of script, default: install.sh
 
-Example: ${scriptFileName} --applicationName Elasticsearch --applicationVersion 7.9
+Example: cosyses --applicationName Elasticsearch --applicationVersion 7.9
+Short: cosyses Elasticsearch 7.9
 EOF
 }
 
@@ -27,17 +30,61 @@ applicationName=
 applicationVersion=
 applicationScript=
 prepareParametersList=
+helpRequested=
 source "${cosysesPath}/prepare-parameters.sh"
 
+distribution=$(lsb_release -i | awk '{print $3}')
+release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
+
 if [[ -z "${applicationName}" ]] && [[ -z "${applicationVersion}" ]] && [[ -z "${applicationScript}" ]]; then
-  if [[ -n "${1}" ]]; then
-    applicationName="${1}"
-  fi
-  if [[ -n "${2}" ]]; then
-    applicationVersion="${2}"
-  fi
-  if [[ -n "${3}" ]]; then
-    applicationScript="${3}"
+  if [[ -n "${1}" ]] && [[ "${1}" == "list" ]]; then
+    cd "${cosysesPath}"
+    if [[ -z "${2}" ]]; then
+      applicationNames=( $(find . -mindepth 1 -maxdepth 1 -type d ! -name .idea ! -name .git | cut -c 3- | sort -n) )
+      for applicationName in "${applicationNames[@]}"; do
+        applicationAvailable=0
+        cd "${cosysesPath}/${applicationName}"
+        applicationVersions=( $(find . -mindepth 1 -maxdepth 1 -type d ! -name .idea ! -name .git | cut -c 3- | sort -n) )
+        for applicationVersion in "${applicationVersions[@]}"; do
+          if [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/install.sh" ]] ||
+            [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/install.sh" ]] ||
+            [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/install.sh" ]] ||
+            [[ -f "${cosysesPath}/${applicationName}/${distribution}/${release}/install.sh" ]] ||
+            [[ -f "${cosysesPath}/${applicationName}/${distribution}/install.sh" ]] ||
+            [[ -f "${cosysesPath}/${applicationName}/install.sh" ]]; then
+            applicationAvailable=1
+          fi
+        done
+        if [[ "${applicationAvailable}" == 1 ]]; then
+          echo "${applicationName}"
+        fi
+      done
+    else
+      applicationName="${2}"
+      cd "${cosysesPath}/${applicationName}"
+      applicationVersions=( $(find . -mindepth 1 -maxdepth 1 -type d ! -name .idea ! -name .git | cut -c 3- | sort -n) )
+      for applicationVersion in "${applicationVersions[@]}"; do
+        if [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/install.sh" ]] ||
+          [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/install.sh" ]] ||
+          [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/install.sh" ]] ||
+          [[ -f "${cosysesPath}/${applicationName}/${distribution}/${release}/install.sh" ]] ||
+          [[ -f "${cosysesPath}/${applicationName}/${distribution}/install.sh" ]] ||
+          [[ -f "${cosysesPath}/${applicationName}/install.sh" ]]; then
+          echo "${applicationVersion}"
+        fi
+      done
+    fi
+    exit 0
+  else
+    if [[ -n "${1}" ]]; then
+      applicationName="${1}"
+    fi
+    if [[ -n "${2}" ]]; then
+      applicationVersion="${2}"
+    fi
+    if [[ -n "${3}" ]]; then
+      applicationScript="${3}"
+    fi
   fi
 fi
 
@@ -51,14 +98,13 @@ if [[ -z "${applicationScript}" ]]; then
   applicationScript="install.sh"
 fi
 
-if [[ -n "${applicationVersion}" ]]; then
-  echo "Installing application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
-else
-  echo "Installing application: ${applicationName} with script: ${applicationScript}"
+if [[ "${helpRequested}" == 0 ]]; then
+  if [[ -n "${applicationVersion}" ]]; then
+    echo "Installing application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
+  else
+    echo "Installing application: ${applicationName} with script: ${applicationScript}"
+  fi
 fi
-
-distribution=$(lsb_release -i | awk '{print $3}')
-release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
 
 if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
   applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"

@@ -1,30 +1,50 @@
 #!/bin/bash -e
 
-scriptFileName="${BASH_SOURCE[0]}"
-if [[ -L "${scriptFileName}" ]] && [[ -x "$(command -v readlink)" ]]; then
-  scriptFileName=$(readlink -f "${scriptFileName}")
+if [[ -z "${cosysesPath}" ]]; then
+  >&2 echo "No cosyses path exported!"
+  echo ""
+  exit 1
+fi
+
+if [[ -z "${applicationName}" ]]; then
+  >&2 echo "No application name exported!"
+  echo ""
+  exit 1
+fi
+
+if [[ -z "${applicationVersion}" ]]; then
+  >&2 echo "No application version exported!"
+  echo ""
+  exit 1
+fi
+
+if [[ -z "${helpRequested}" ]]; then
+  >&2 echo "No help requested exported!"
+  echo ""
+  exit 1
 fi
 
 usage()
 {
 cat >&2 << EOF
 
-usage: ${scriptFileName} options
+usage: cosyses ${applicationName} ${applicationVersion} [options]
 
 OPTIONS:
   --help            Show this message
+  --bindAddress     Bind address, default: 127.0.0.1
   --port            Server port, default: 5672
   --managementPort  Port of Management GUI, default: 15672
   --adminUserName   Name of admin user, default: admin
   --adminPassword   Password of admin user, default: <generated>
 
-Example: ${scriptFileName} --adminPassword secret
+Example: cosyses ${applicationName} ${applicationVersion} --adminPassword secret
+
 EOF
 }
 
-if [[ -z "${cosysesPath}" ]]; then
-  >&2 echo "No cosyses path exported!"
-  echo ""
+if [[ "${helpRequested}" == 1 ]]; then
+  usage
   exit 1
 fi
 
@@ -33,6 +53,10 @@ managementPort=
 adminUserName=
 adminPassword=
 source "${cosysesPath}/prepare-parameters.sh"
+
+if [[ -z "${bindAddress}" ]]; then
+  bindAddress="127.0.0.1"
+fi
 
 if [[ -z "${port}" ]]; then
   port=5672
@@ -73,7 +97,8 @@ install-package rabbitmq-server 3.11
 
 rabbitmq-plugins enable rabbitmq_management
 
-echo "[{rabbit, [{loopback_users, []}, {tcp_listeners, [${port}]}]}, {rabbitmq_management, [{listener, [{port, ${managementPort}}]}]}]." > /etc/rabbitmq/rabbitmq.config
+echo "Setting bind address to: ${bindAddress}, port to: ${port} and management port to: ${managementPort}"
+echo "[{rabbit, [{loopback_users, []}, {tcp_listeners, [{\"${bindAddress}\", ${port}}]}]}, {rabbitmq_management, [{listener, [{ip, \"${bindAddress}\"}, {port, ${managementPort}}]}]}]." > /etc/rabbitmq/rabbitmq.config
 
 service rabbitmq-server restart
 
