@@ -58,22 +58,8 @@ replace-file-content /etc/php/8.2/apache2/php.ini "memory_limit = 4096M" "memory
 add-file-content-after /etc/php/8.2/apache2/php.ini "error_log = /var/log/php/apache.log" "error_log = syslog" 1
 
 if [[ -f /.dockerenv ]]; then
-  echo "Creating start script at: /usr/local/bin/php.sh"
-  cat <<EOF > /usr/local/bin/php.sh
-#!/usr/bin/env bash
-trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
-stop() {
-  echo "Stopping PHP Mod"
-  /usr/sbin/apache2ctl stop
-  exit
-}
-for command in "\$@"; do
-  echo "Run: \${command}"
-  /bin/bash "\${command}"
-done
-echo "Starting PHP Mod"
-/usr/sbin/apache2ctl start
-EOF
+  echo "Copy start script at: /usr/local/bin/php.sh from /usr/local/bin/apache.sh"
+  cp /usr/local/bin/apache.sh /usr/local/bin/php.sh
   chmod +x /usr/local/bin/php.sh
 else
   echo "Restarting service"
