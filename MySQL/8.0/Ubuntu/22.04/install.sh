@@ -15,7 +15,7 @@ OPTIONS:
   --help                  Show this message
   --databaseRootHost      Server host name, default: localhost
   --databaseRootPort      Server port, default: 3306
-  --databaseRootPassword  Root password, default: <generated>
+  --databaseRootPassword  User password, default: <generated>
   --bindAddress           Bind address, default: 127.0.0.1 or 0.0.0.0 if docker environment
 
 Example: ${scriptFileName} --databaseRootPassword secret
@@ -67,23 +67,27 @@ if [[ -z "${bindAddress}" ]]; then
   fi
 fi
 
-echo "Setting up installation"
-curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash -s -- --mariadb-server-version="mariadb-10.6" --os-type="ubuntu" --os-version="jammy"
-
 export DEBIAN_FRONTEND=noninteractive
 
 echo "Downloading libraries"
-install-package mariadb-server 1:10.6
+install-package perl
+install-package libaio1
+install-package libnuma1
+install-package libmecab2
+install-package libtinfo5
+install-package psmisc
+install-package-from-deb mysql-common 8.0.40-1ubuntu0.22.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-common_8.0.40-1ubuntu22.04_amd64.deb
+install-package-from-deb mysql-community-client-plugins 8.0.40-1ubuntu0.22.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-client-plugins_8.0.40-1ubuntu22.04_amd64.deb
+install-package-from-deb mysql-community-client-core 8.0.40-1ubuntu0.22.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-client-core_8.0.40-1ubuntu22.04_amd64.deb
+install-package-from-deb mysql-community-client 8.0.40-1ubuntu0.22.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-client_8.0.40-1ubuntu22.04_amd64.deb
+install-package-from-deb mysql-client 8.0.40-1ubuntu0.22.04  https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-client_8.0.40-1ubuntu22.04_amd64.deb
+install-package-from-deb mysql-community-server-core 8.0.40-1ubuntu0.22.04 https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-server-core_8.0.40-1ubuntu22.04_amd64.deb
+install-package-from-deb mysql-community-server 8.0.40-1ubuntu0.22.04  https://repo.mysql.com/apt/ubuntu/pool/mysql-8.0/m/mysql-community/mysql-community-server_8.0.40-1ubuntu22.04_amd64.deb
 
-echo "Fix start script"
-# shellcheck disable=SC2016
-replace-file-content /etc/init.d/mariadb '[ -z "$datadir" ]' '[ -z "$datadir"]' 0
-
-echo "Setting port to: ${databaseRootPort}"
-add-file-content-after /etc/mysql/mariadb.conf.d/50-server.cnf "port = ${databaseRootPort}" "[mysqld]" 1
-
-echo "Starting MariaDB"
-/etc/init.d/mariadb start
+if [[ -f /.dockerenv ]]; then
+  echo "Starting MySQL"
+  /usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
+fi
 
 cosyses \
   --applicationName "${applicationName}" \
@@ -97,21 +101,19 @@ add-file-content-before /etc/security/limits.conf "mysql  hard  nofile  65535" "
 sysctl -p
 
 echo "Allowing binding from: ${bindAddress}"
-replace-file-content /etc/mysql/mariadb.conf.d/50-server.cnf "bind-address            = ${bindAddress}" "bind-address            = 127.0.0.1"
-
-echo "Adding skipping of DNS lookup"
-replace-file-content /etc/mysql/mariadb.conf.d/50-server.cnf "skip-name-resolve" "#skip-name-resolve" 0
-
-echo "Stopping MariaDB"
-/etc/init.d/mariadb stop
+sed -i "s/bind-address.*/bind-address = ${bindAddress}/g" /etc/mysql/mysql.conf.d/mysqld.cnf
 
 if [[ -f /.dockerenv ]]; then
-  echo "Creating start script at: /usr/local/bin/mariadb.sh"
-  cat <<EOF > /usr/local/bin/mariadb.sh
+  echo "Stopping MySQL"
+  kill "$(cat /var/run/mysqld/mysqld.pid)"
+
+  echo "Creating start script at: /usr/local/bin/mysql.sh"
+  cat <<EOF > /usr/local/bin/mysql.sh
 #!/usr/bin/env bash
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
-  echo "Stopping MariaDB"
+  echo "Stopping MySQL"
+  export MYSQL_PWD="${databaseRootPassword}"
   mariadb-admin shutdown
   exit
 }
@@ -119,24 +121,12 @@ for command in "\$@"; do
   echo "Run: \${command}"
   /bin/bash "\${command}"
 done
-/usr/bin/install \
-  -m 755 \
-  -o mysql \
-  -g root \
-  -d /var/run/mysqld
-echo "Starting MariaDB"
-/usr/sbin/mysqld \
-  --basedir=/usr \
-  --datadir=/var/lib/mysql \
-  --plugin-dir=/usr/lib/mysql/plugin \
-  --user=mysql \
-  --skip-log-error \
-  --pid-file=/var/run/mysqld/mysqld.pid \
-  --socket=/var/run/mysqld/mysqld.sock &
+echo "Starting MySQL"
+/usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
 tail -f /dev/null & wait \$!
 EOF
-  chmod +x /usr/local/bin/mariadb.sh
+  chmod 0700 /usr/local/bin/mysql.sh
 else
-  echo "Starting MariaDB"
-  /etc/init.d/mariadb start
+  echo "Restarting MySQL"
+  service mysql restart
 fi
