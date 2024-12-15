@@ -94,7 +94,6 @@ replace-file-content /etc/apache2/ports.conf "Listen ${sslPort}" "Listen 443"
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/apache.sh"
   cat <<EOF > /usr/local/bin/apache.sh
-  cat <<EOF > /usr/local/bin/php.sh
 #!/usr/bin/env bash
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
