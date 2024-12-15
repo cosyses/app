@@ -32,7 +32,7 @@ if [[ -z "${port}" ]]; then
   port="22"
 fi
 
-install-package openssh-server 1:7.2
+install-package openssh-server 1:9.6
 
 replace-file-content /etc/ssh/sshd_config "Port ${port}" "#Port 22" 0
 

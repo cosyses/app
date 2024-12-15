@@ -35,3 +35,10 @@ fi
 install-package openssh-server 1:8.9
 
 replace-file-content /etc/ssh/sshd_config "Port ${port}" "#Port 22" 0
+
+echo "Creating start script at: /usr/local/bin/openssh.sh"
+cat <<EOF > /usr/local/bin/openssh.sh
+#!/bin/bash -e
+/etc/init.d/ssh start
+EOF
+chmod +x /usr/local/bin/openssh.sh
