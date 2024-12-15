@@ -114,7 +114,7 @@ trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
   echo "Stopping MySQL"
   export MYSQL_PWD="${databaseRootPassword}"
-  mariadb-admin shutdown
+  mysqladmin shutdown
   exit
 }
 for command in "\$@"; do
