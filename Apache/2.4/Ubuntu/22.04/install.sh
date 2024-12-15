@@ -107,6 +107,7 @@ for command in "\$@"; do
 done
 echo "Starting Apache"
 /usr/sbin/apache2ctl start
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/apache.sh
 else
