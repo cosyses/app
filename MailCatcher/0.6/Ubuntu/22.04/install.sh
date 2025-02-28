@@ -63,7 +63,7 @@ install-package gcc
 install-package g++
 
 install-gem mime-types 2.99.1
-install-gem mailcatcher 0.6
+install-gem mailcatcher 0.6.5
 
 if [[ ! -f /.dockerenv ]]; then
   echo "Creating service at: /etc/systemd/system/mailcatcher.service"
@@ -91,8 +91,24 @@ EOF
 else
   echo "Creating start script at: /usr/local/bin/mailcatcher.sh"
   cat <<EOF > /usr/local/bin/mailcatcher.sh
-#!/bin/bash -e
-$(which mailcatcher) --foreground --smtp-ip ${smtpIp} --smtp-port ${smtpPort} --http-ip ${httpIp} --http-port ${httpPort}
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping MailCatcher"
+  lsof -nP -iTCP:${smtpPort} -sTCP:LISTEN | awk 'NR > 1 {print \$2}' | xargs kill
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting MailCatcher"
+$(which mailcatcher) \
+  --smtp-ip ${smtpIp} \
+  --smtp-port ${smtpPort} \
+  --http-ip ${httpIp} \
+  --http-port ${httpPort} &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/mailcatcher.sh
 fi
