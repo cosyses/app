@@ -91,6 +91,8 @@ EOF
   service mailcatcher start
   service mailcatcher status
 else
+  install-package lsof
+
   echo "Creating start script at: /usr/local/bin/mailcatcher.sh"
   cat <<EOF > /usr/local/bin/mailcatcher.sh
 #!/usr/bin/env bash
