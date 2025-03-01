@@ -124,16 +124,17 @@ done
   -o mysql \
   -g root \
   -d /var/run/mysqld
+rm -rf mariadb.out
 echo "Starting MariaDB"
-/usr/sbin/mysqld \
+nohup /usr/sbin/mysqld \
   --basedir=/usr \
   --datadir=/var/lib/mysql \
   --plugin-dir=/usr/lib/mysql/plugin \
   --user=mysql \
   --skip-log-error \
   --pid-file=/var/run/mysqld/mysqld.pid \
-  --socket=/var/run/mysqld/mysqld.sock &
-tail -f /dev/null & wait \$!
+  --socket=/var/run/mysqld/mysqld.sock > mariadb.out 2>&1 &
+tail -f mariadb.out & wait \$!
 EOF
   chmod +x /usr/local/bin/mariadb.sh
 else
