@@ -91,8 +91,20 @@ if [[ -f /.dockerenv ]]; then
 
   echo "Creating start script at: /usr/local/bin/redis.sh"
   cat <<EOF > /usr/local/bin/redis.sh
-#!/bin/bash -e
-/usr/local/bin/redis-server /etc/redis/redis_${port}.conf --daemonize no
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Redis"
+  cat /var/run/redis_${port}.pid | xargs kill -15
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Redis"
+/usr/local/bin/redis-server /etc/redis/redis_${port}.conf --daemonize yes &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/redis.sh
 else
