@@ -118,8 +118,20 @@ if [[ -f /.dockerenv ]]; then
 
   echo "Creating start script at: /usr/local/bin/rabbitmq.sh"
   cat <<EOF > /usr/local/bin/rabbitmq.sh
-#!/bin/bash -e
-sudo -H -u rabbitmq bash -c "/usr/lib/rabbitmq/bin/rabbitmq-server"
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping RabbitMQ"
+  sudo -H -u rabbitmq bash -c "rabbitmqctl stop"
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting RabbitMQ"
+sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached" &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/rabbitmq.sh
 fi
