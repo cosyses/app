@@ -32,7 +32,7 @@ usage: cosyses ${applicationName} ${applicationVersion} [options]
 
 OPTIONS:
   --help            Show this message
-  --bindAddress     Bind address, default: 127.0.0.1
+  --bindAddress     Bind address, default: 127.0.0.1 or 0.0.0.0 if docker environment
   --port            Server port, default: 5672
   --managementPort  Port of Management GUI, default: 15672
   --adminUserName   Name of admin user, default: admin
@@ -55,7 +55,11 @@ adminPassword=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${bindAddress}" ]]; then
-  bindAddress="127.0.0.1"
+  if [[ -f /.dockerenv ]]; then
+    bindAddress="0.0.0.0"
+  else
+    bindAddress="127.0.0.1"
+  fi
 fi
 
 if [[ -z "${port}" ]]; then
