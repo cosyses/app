@@ -99,7 +99,7 @@ else
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
   echo "Stopping MailCatcher"
-  lsof -nP -iTCP:${smtpPort} -sTCP:LISTEN | awk 'NR > 1 {print \$2}' | xargs kill
+  lsof -nP -iTCP:${smtpPort} -sTCP:LISTEN | awk 'NR > 1 {print \$2}' | xargs kill -15
   exit
 }
 for command in "\$@"; do

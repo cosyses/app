@@ -82,10 +82,24 @@ echo "plugins.security.disabled: true" >> /opt/opensearch/config/opensearch.yml
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/opensearch.sh"
   cat <<EOF > /usr/local/bin/opensearch.sh
-#!/bin/bash -e
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping OpenSearch"
+  cat /var/run/opensearch/opensearch.pid | xargs kill -15
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting OpenSearch"
 ulimit -n 65535
 sysctl -w vm.max_map_count=262144
-sudo -H -u ${userName} bash -c "/opt/opensearch/opensearch-tar-install.sh"
+mkdir -p /var/run/opensearch
+chown ${userName}: /var/run/opensearch/
+sudo -H -u ${userName} bash -c "/opt/opensearch/bin/opensearch -p /var/run/opensearch/opensearch.pid -d" &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/opensearch.sh
 else
