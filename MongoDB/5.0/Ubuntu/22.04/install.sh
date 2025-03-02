@@ -111,10 +111,11 @@ for command in "\$@"; do
 done
 mkdir -p /var/run/mongod/
 chown mongodb: /var/run/mongod/
-sudo -H -u mongodb bash -c "rm -rf /var/run/mongod/mongodb.out && touch /var/run/mongod/mongodb.out"
+sudo -H -u mongodb bash -c "rm -rf /var/run/mongod/mongodb.out"
+sudo -H -u mongodb bash -c "touch /var/run/mongod/mongodb.out"
 echo "Starting MongoDB"
 sudo -H -u mongodb bash -c "nohup /usr/bin/mongod -f /etc/mongod.conf --pidfilepath /var/run/mongod/mongodb.pid > /var/run/mongod/mongodb.out 2>&1 &" &
-tail -f mongodb.out & wait \$!
+tail -f /var/run/mongod/mongodb.out & wait \$!
 EOF
   chmod +x /usr/local/bin/mongodb.sh
 fi
