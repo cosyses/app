@@ -34,8 +34,18 @@ rm -rf /tmp/node.js
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/nodejs.sh"
   cat <<EOF > /usr/local/bin/nodejs.sh
-#!/bin/bash -e
-tail -f /dev/null
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Node.js"
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Node.js"
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/nodejs.sh
 fi
