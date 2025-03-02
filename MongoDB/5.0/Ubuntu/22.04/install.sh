@@ -110,7 +110,7 @@ for command in "\$@"; do
   /bin/bash "\${command}"
 done
 mkdir -p /var/run/mongod/
-chown mongod: /var/run/mongod/
+chown mongodb: /var/run/mongod/
 sudo -H -u mongodb bash -c "rm -rf /var/run/mongod/mongodb.out && touch /var/run/mongod/mongodb.out"
 echo "Starting MongoDB"
 sudo -H -u mongodb bash -c "nohup /usr/bin/mongod -f /etc/mongod.conf --pidfilepath /var/run/mongod/mongodb.pid > /var/run/mongod/mongodb.out 2>&1 &" &
