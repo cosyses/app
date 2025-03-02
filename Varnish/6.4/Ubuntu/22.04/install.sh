@@ -66,8 +66,20 @@ fi
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/varnish.sh"
   cat <<EOF > /usr/local/bin/varnish.sh
-#!/bin/bash -e
-/usr/sbin/varnishd -F -a ${bindAddress}:${port} -T ${adminBindAddress}:${adminPort} -f /etc/varnish/varnish.vcl -S /etc/varnish/secret -s malloc,256m
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Varnish"
+  cat /var/run/varnish.pid | xargs kill -15
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Varnish"
+/usr/sbin/varnishd -a ${bindAddress}:${port} -T ${adminBindAddress}:${adminPort} -f /etc/varnish/varnish.vcl -S /etc/varnish/secret -s malloc,256m -P /var/run/varnish.pid &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/varnish.sh
 else
