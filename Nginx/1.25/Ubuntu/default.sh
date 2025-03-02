@@ -95,6 +95,8 @@ if [[ ! -f /.dockerenv ]]; then
   echo "Restarting Nginx"
   service nginx restart
 else
-  echo "Reloading Nginx"
-  nginx -s reload
+  if [[ -f /var/run/nginx.pid ]]; then
+    echo "Reloading Nginx"
+    nginx -s reload
+  fi
 fi

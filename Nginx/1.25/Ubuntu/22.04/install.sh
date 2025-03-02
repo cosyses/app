@@ -99,8 +99,20 @@ usermod -a -G www-data nginx
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/nginx.sh"
   cat <<EOF > /usr/local/bin/nginx.sh
-#!/bin/bash -e
-/usr/sbin/nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Nginx"
+  /usr/sbin/nginx -s quit
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Nginx"
+/usr/sbin/nginx -c /etc/nginx/nginx.conf &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/nginx.sh
 else
