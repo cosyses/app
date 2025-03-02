@@ -35,7 +35,11 @@ adminPassword=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${bindAddress}" ]]; then
-  bindAddress="0.0.0.0"
+  if [[ -f /.dockerenv ]]; then
+    bindAddress="0.0.0.0"
+  else
+    bindAddress="127.0.0.1"
+  fi
 fi
 
 if [[ -z "${port}" ]]; then
@@ -94,9 +98,21 @@ if [[ -f /.dockerenv ]]; then
 
   echo "Creating start script at: /usr/local/bin/mongodb.sh"
   cat <<EOF > /usr/local/bin/mongodb.sh
-#!/bin/bash -e
-mkdir -p /var/run/mongod && chown mongodb:mongodb /var/run/mongod
-sudo -H -u mongodb bash -c "/usr/bin/mongod -f /etc/mongod.conf --pidfilepath /var/run/mongod/mongodb.pid"
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping MongoDB"
+  sudo -H -u mongodb bash -c "/usr/bin/mongod -f /etc/mongod.conf --shutdown"
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+sudo -H -u mongodb bash -c "rm -rf /var/run/mongod/mongodb.out && touch /var/run/mongod/mongodb.out"
+echo "Starting MongoDB"
+sudo -H -u mongodb bash -c "nohup /usr/bin/mongod -f /etc/mongod.conf --pidfilepath /var/run/mongod/mongodb.pid > /var/run/mongod/mongodb.out 2>&1 &" &
+tail -f mongodb.out & wait \$!
 EOF
   chmod +x /usr/local/bin/mongodb.sh
 fi
