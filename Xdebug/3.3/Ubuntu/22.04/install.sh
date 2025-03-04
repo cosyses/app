@@ -51,7 +51,22 @@ install-package build-essential
 
 phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
 
-if [[ "${phpVersion}" == "8.3" ]]; then
+if [[ "${phpVersion}" == "8.0" ]]; then
+  install-package php8.0-dev
+  install-package php-xml
+  install-package php8.0-xml
+  phpConfigurationFile="/etc/php/8.0/mods-available/xdebug.ini"
+elif [[ "${phpVersion}" == "8.1" ]]; then
+  install-package php8.1-dev
+  install-package php-xml
+  install-package php8.1-xml
+  phpConfigurationFile="/etc/php/8.1/mods-available/xdebug.ini"
+elif [[ "${phpVersion}" == "8.2" ]]; then
+  install-package php8.2-dev
+  install-package php-xml
+  install-package php8.2-xml
+  phpConfigurationFile="/etc/php/8.2/mods-available/xdebug.ini"
+elif [[ "${phpVersion}" == "8.3" ]]; then
   install-package php8.3-dev
   install-package php-xml
   install-package php8.3-xml
@@ -61,7 +76,7 @@ else
   exit 1
 fi
 
-install-pecl-package xdebug 3.3.1
+install-pecl-package xdebug 3.3.2
 
 moduleFile=$(find /usr/lib/php/ -name xdebug.so)
 

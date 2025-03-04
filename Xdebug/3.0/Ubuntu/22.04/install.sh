@@ -71,17 +71,12 @@ elif [[ "${phpVersion}" == "8.0" ]]; then
   install-package php-xml
   install-package php8.0-xml
   phpConfigurationFile="/etc/php/8.0/mods-available/xdebug.ini"
-elif [[ "${phpVersion}" == "8.1" ]]; then
-  install-package php8.1-dev
-  install-package php-xml
-  install-package php8.1-xml
-  phpConfigurationFile="/etc/php/8.1/mods-available/xdebug.ini"
 else
   >&2 echo "Unsupported PHP version: ${phpVersion}"
   exit 1
 fi
 
-install-pecl-package xdebug 3.1.6
+install-pecl-package xdebug 3.0.4
 
 mkdir -p /var/xdebug
 chmod 0777 /var/xdebug
