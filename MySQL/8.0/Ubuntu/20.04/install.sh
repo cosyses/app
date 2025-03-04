@@ -105,14 +105,27 @@ sed -i "s/bind-address.*/bind-address = ${bindAddress}/g" /etc/mysql/mysql.conf.
 
 if [[ -f /.dockerenv ]]; then
   echo "Stopping MySQL"
-  kill "$(cat /var/run/mysqld/mysqld.pid)"
+  mysqladmin shutdown
 
   echo "Creating start script at: /usr/local/bin/mysql.sh"
   cat <<EOF > /usr/local/bin/mysql.sh
-#!/bin/bash -e
-/usr/sbin/mysqld --user mysql --pid-file=/var/run/mysqld/mysqld.pid
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping MySQL"
+  export MYSQL_PWD="${databaseRootPassword}"
+  mysqladmin shutdown
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting MySQL"
+/usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
+tail -f /dev/null & wait \$!
 EOF
-  chmod +x /usr/local/bin/mysql.sh
+  chmod 0700 /usr/local/bin/mysql.sh
 else
   echo "Restarting MySQL"
   service mysql restart

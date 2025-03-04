@@ -105,7 +105,7 @@ sed -i "s/bind-address.*/bind-address = ${bindAddress}/g" /etc/mysql/mysql.conf.
 
 if [[ -f /.dockerenv ]]; then
   echo "Stopping MySQL"
-  kill "$(cat /var/run/mysqld/mysqld.pid)"
+  mysqladmin shutdown
 
   echo "Creating start script at: /usr/local/bin/mysql.sh"
   cat <<EOF > /usr/local/bin/mysql.sh
