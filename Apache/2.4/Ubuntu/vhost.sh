@@ -500,6 +500,8 @@ if [[ ! -f /.dockerenv ]]; then
   echo "Restarting Apache"
   service apache2 restart
 else
-  echo "Reloading Apache"
-  service apache2 reload
+  if [[ -f /var/run/apache2/apache2.pid ]] && $(ps -p "$(cat /var/run/apache2/apache2.pid)" >/dev/null); then
+    echo "Restarting Apache"
+    /usr/sbin/apache2ctl restart
+  fi
 fi
