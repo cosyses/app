@@ -75,6 +75,9 @@ if [[ -z "${applicationName}" ]] && [[ -z "${applicationVersion}" ]] && [[ -z "$
       done
     fi
     exit 0
+  elif [[ -n "${1}" ]] && [[ "${1}" == "update" ]]; then
+    wget -q -O - https://raw.githubusercontent.com/cosyses/app/master/setup.sh | bash
+    exit 0
   else
     if [[ -n "${1}" ]]; then
       applicationName="${1}"
