@@ -75,7 +75,13 @@ fi
 install-package ssl-cert
 add-certificate "default" "${sslCertFile}" "${sslKeyFile}"
 
-install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+architecture=$(dpkg --print-architecture)
+
+if [[ "${architecture}" == "amd64" ]]; then
+  install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+elif [[ "${architecture}" == "arm64" ]]; then
+  install-package-from-deb libssl1.1 1.1_1.1.1f-1ubuntu2 http://launchpadlibrarian.net/475575244/libssl1.1_1.1.1f-1ubuntu2_arm64.deb
+fi
 
 add-gpg-repository "nginx.list" "http://nginx.org/packages/mainline/ubuntu/" "focal" "nginx" "http://nginx.org/keys/nginx_signing.key" "y"
 install-package nginx 1.25
