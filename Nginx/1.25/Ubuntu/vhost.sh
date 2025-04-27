@@ -12,31 +12,33 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help                   Show this message
-  --httpPort               HTTP port, default: 80
-  --sslPort                SSL port, default: 443
-  --webPath                Web path, required if no proxy data
-  --webUser                Web user, default: www-data
-  --webGroup               Web group, default: www-data
-  --proxyHostPath          Proxy host path (optional), default: /
-  --proxyProtocol          Proxy protocol (optional), default: http
-  --proxyHost              Proxy host (optional)
-  --proxyPort              Proxy port (optional), default: 80 (http) or 443 (https)
-  --proxyPath              Proxy path (optional), default: /
-  --logPath                Log path, default: /var/log/nginx
-  --logLevel               Log level, default: warn
-  --serverName             Server name
-  --sslTerminated          SSL terminated (yes/no), default: no
-  --forceSsl               Force SSL (yes/no), default: yes
-  --basicAuthUserName      Basic auth user name (optional)
-  --basicAuthPassword      Basic auth password (optional)
-  --basicAuthUserFilePath  Basic auth user file path (optional), default: /var/www
-  --fpmHostName            Host name of PHP FPM instance
-  --fpmHostPort            Port of PHP FPM instance
-  --rootPath               Path of root, default: /
-  --rootPathIndex          Index of root path, default: /index.php
-  --phpPath                Path of PHP, default: \.php$
-  --overwrite              Overwrite existing files (yes/no), default: no
+  --help                      Show this message
+  --httpPort                  HTTP port, default: 80
+  --sslPort                   SSL port, default: 443
+  --webPath                   Web path, required if no proxy data
+  --webUser                   Web user, default: www-data
+  --webGroup                  Web group, default: www-data
+  --proxyHostPath             Proxy host path (optional), default: /
+  --proxyProtocol             Proxy protocol (optional), default: http
+  --proxyHost                 Proxy host (optional)
+  --proxyPort                 Proxy port (optional), default: 80 (http) or 443 (https)
+  --proxyPath                 Proxy path (optional), default: /
+  --logPath                   Log path, default: /var/log/nginx
+  --logLevel                  Log level, default: warn
+  --serverName                Server name
+  --sslTerminated             SSL terminated (yes/no), default: no
+  --forceSsl                  Force SSL (yes/no), default: yes
+  --basicAuthUserName         Basic auth user name (optional)
+  --basicAuthPassword         Basic auth password (optional)
+  --basicAuthUserFilePath     Basic auth user file path (optional), default: /var/www
+  --fpmHostName               Host name of PHP FPM instance
+  --fpmHostPort               Port of PHP FPM instance
+  --rootPath                  Path of root, default: /
+  --rootPathIndex             Index of root path, default: /index.php
+  --phpPath                   Path of PHP, default: \.php$
+  --redirectTargetProtocol    Protocol of redirect target, default: https
+  --redirectTargetServerName  Server name of target
+  --overwrite                 Overwrite existing files (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --sslTerminated no --forceSsl yes
 EOF
@@ -83,6 +85,8 @@ fpmHostPort=
 rootPath=
 rootPathIndex=
 phpPath=
+redirectTargetProtocol=
+redirectTargetServerName=
 overwrite=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -96,8 +100,13 @@ fi
 
 if [[ -z "${webPath}" ]] || [[ "${webPath}" == "-" ]]; then
   if [[ -z "${proxyHost}" ]] || [[ "${proxyHost}" == "-" ]]; then
-    echo "No web path or proxy specified!"
-    exit 1
+    if [[ -z "${redirectTargetProtocol}" ]] || [[ "${redirectTargetServerName}" == "-" ]]; then
+      echo "No web path, proxy or redirect specified!"
+      exit 1
+    else
+      webPath="-"
+      forceSsl="no"
+    fi
   else
     webPath="-"
   fi
@@ -368,18 +377,34 @@ else
           --fpmHostPort "${fpmHostPort}" \
           --append yes
       else
-        cosyses \
-          --applicationName "${applicationName}" \
-          --applicationVersion "${applicationVersion}" \
-          --applicationScript "vhost/http-path.sh" \
-          --httpPort "${httpPort}" \
-          --webPath "${webPath}" \
-          --webUser "${webUser}" \
-          --webGroup "${webGroup}" \
-          --logPath "${logPath}" \
-          --logLevel "${logLevel}" \
-          --serverName "${serverName}" \
-          --append yes
+        if [[ -n "${redirectTargetProtocol}" ]] && [[ "${redirectTargetProtocol}" != "-" ]] && [[ -n "${redirectTargetServerName}" ]] && [[ "${redirectTargetServerName}" != "-" ]]; then
+          cosyses \
+            --applicationName "${applicationName}" \
+            --applicationVersion "${applicationVersion}" \
+            --applicationScript "vhost/http-redirect.sh" \
+            --httpPort "${httpPort}" \
+            --webUser "${webUser}" \
+            --webGroup "${webGroup}" \
+            --logPath "${logPath}" \
+            --logLevel "${logLevel}" \
+            --serverName "${serverName}" \
+            --redirectTargetProtocol "${redirectTargetProtocol}" \
+            --redirectTargetServerName "${redirectTargetServerName}" \
+            --append yes
+        else
+          cosyses \
+            --applicationName "${applicationName}" \
+            --applicationVersion "${applicationVersion}" \
+            --applicationScript "vhost/http-path.sh" \
+            --httpPort "${httpPort}" \
+            --webPath "${webPath}" \
+            --webUser "${webUser}" \
+            --webGroup "${webGroup}" \
+            --logPath "${logPath}" \
+            --logLevel "${logLevel}" \
+            --serverName "${serverName}" \
+            --append yes
+        fi
       fi
     fi
   fi
@@ -485,18 +510,34 @@ if [[ ${sslTerminated} == "no" ]]; then
           --phpPath "${phpPath}" \
           --append yes
       else
-        cosyses \
-          --applicationName "${applicationName}" \
-          --applicationVersion "${applicationVersion}" \
-          --applicationScript "vhost/ssl-path.sh" \
-          --sslPort "${sslPort}" \
-          --webPath "${webPath}" \
-          --webUser "${webUser}" \
-          --webGroup "${webGroup}" \
-          --logPath "${logPath}" \
-          --logLevel "${logLevel}" \
-          --serverName "${serverName}" \
-          --append yes
+        if [[ -n "${redirectTargetProtocol}" ]] && [[ "${redirectTargetProtocol}" != "-" ]] && [[ -n "${redirectTargetServerName}" ]] && [[ "${redirectTargetServerName}" != "-" ]]; then
+          cosyses \
+            --applicationName "${applicationName}" \
+            --applicationVersion "${applicationVersion}" \
+            --applicationScript "vhost/ssl-redirect.sh" \
+            --sslPort "${sslPort}" \
+            --webUser "${webUser}" \
+            --webGroup "${webGroup}" \
+            --logPath "${logPath}" \
+            --logLevel "${logLevel}" \
+            --serverName "${serverName}" \
+            --redirectTargetProtocol "${redirectTargetProtocol}" \
+            --redirectTargetServerName "${redirectTargetServerName}" \
+            --append yes
+        else
+          cosyses \
+            --applicationName "${applicationName}" \
+            --applicationVersion "${applicationVersion}" \
+            --applicationScript "vhost/ssl-path.sh" \
+            --sslPort "${sslPort}" \
+            --webPath "${webPath}" \
+            --webUser "${webUser}" \
+            --webGroup "${webGroup}" \
+            --logPath "${logPath}" \
+            --logLevel "${logLevel}" \
+            --serverName "${serverName}" \
+            --append yes
+        fi
       fi
     fi
   fi
