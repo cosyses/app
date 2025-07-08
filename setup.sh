@@ -101,7 +101,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       yum clean all
       yum install -y redhat-lsb-core
     elif [[ "${distribution}" == "Debian GNU/Linux" ]]; then
-      apt-get update
+      apt-get update --allow-releaseinfo-change
       apt-get install -y lsb-release
     elif [[ "${distribution}" == "Fedora" ]]; then
       dnf makecache
@@ -116,7 +116,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       yum makecache
       yum install -y redhat-lsb-core
     elif [[ "${distribution}" == "Ubuntu" ]]; then
-      apt-get update
+      apt-get update --allow-releaseinfo-change
       apt-get install -y lsb-release
     else
       >&2 echo "Unsupported OS: ${distribution}"
@@ -140,7 +140,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
     if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
       yum makecache
     elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-      apt-get update
+      apt-get update --allow-releaseinfo-change
     elif [[ "${distribution}" == "Fedora" ]]; then
       dnf makecache
     elif [[ "${distribution}" == "Manjaro Linux" ]]; then

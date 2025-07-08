@@ -6,4 +6,4 @@ fi
 mkdir -p /var/lib/apt/lists/partial
 rm -rf /var/lib/apt/lists/partial/*
 rm -rf /var/lib/apt/lists/lock
-apt-get update || apt-get update || apt-get update
+apt-get update --allow-releaseinfo-change || apt-get update --allow-releaseinfo-change || apt-get update --allow-releaseinfo-change
