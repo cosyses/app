@@ -41,6 +41,7 @@ if [ -f "${aptFileName}" ]; then
 fi
 
 install-package gnupg
+install-package wget
 
 echo "Installing repository: ${2}"
 if [[ -n "${keyUri}" ]]; then

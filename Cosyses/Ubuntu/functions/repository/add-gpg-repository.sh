@@ -17,6 +17,8 @@ if [ -f "${aptFileName}" ]; then
   fi
 fi
 
+install-package wget
+
 echo "Installing repository: ${2}"
 if [[ -n "${keyUri}" ]]; then
   keyName=$(basename "${keyUri}")

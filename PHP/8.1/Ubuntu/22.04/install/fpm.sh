@@ -78,9 +78,21 @@ replace-file-content /etc/php/8.1/fpm/pool.d/www.conf "listen = ${bindAddress}:$
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"
   cat <<EOF > /usr/local/bin/php.sh
-#!/bin/bash -e
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping PHP FPM"
+  kill "\$(cat /run/php/php8.1-fpm.pid)"
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting PHP FPM"
 mkdir -p /run/php
-/usr/sbin/php-fpm8.1 --nodaemonize --fpm-config /etc/php/8.1/fpm/php-fpm.conf
+/usr/sbin/php-fpm8.1 --fpm-config /etc/php/8.1/fpm/php-fpm.conf
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/php.sh
 else
