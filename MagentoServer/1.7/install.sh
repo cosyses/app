@@ -62,6 +62,6 @@ fi
 
 prepare-user -u "${user}"
 
-sudo -H -u "${user}" bash -c "cd ~; composer config --global --no-interaction http-basic.composer.tofex.de ${composerUser} ${composerPassword}"
-sudo -H -u "${user}" bash -c "cd ~; composer create-project --repository-url=https://composer.tofex.de/ \"tofex/magento-server-project\" --no-interaction --prefer-dist --ansi ${magentoServerPath}"
+sudo -H -u "${user}" bash -c "cd ~; composer config --global --no-interaction http-basic.repo.packagist.com ${composerUser} ${composerPassword}"
+sudo -H -u "${user}" bash -c "cd ~; composer create-project --repository-url=https://repo.packagist.com/tofex/ \"tofex/magento-server-project\" --no-interaction --prefer-dist --ansi ${magentoServerPath}"
 sudo -H -u "${user}" bash -c "cd ~; ${magentoServerPath}/core/init.sh"
