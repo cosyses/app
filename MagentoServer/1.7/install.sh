@@ -65,3 +65,22 @@ prepare-user -u "${user}"
 sudo -H -u "${user}" bash -c "cd ~; composer config --global --no-interaction http-basic.repo.packagist.com ${composerUser} ${composerPassword}"
 sudo -H -u "${user}" bash -c "cd ~; composer create-project --repository-url=https://repo.packagist.com/tofex/ \"tofex/magento-server-project\" --no-interaction --prefer-dist --ansi ${magentoServerPath}"
 sudo -H -u "${user}" bash -c "cd ~; ${magentoServerPath}/core/init.sh"
+
+if [[ -f /.dockerenv ]]; then
+  echo "Creating start script at: /usr/local/bin/magentoserver.sh"
+  cat <<EOF > /usr/local/bin/magentoserver.sh
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Magento Server"
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Magento Server"
+tail -f /dev/null & wait \$!
+EOF
+  chmod +x /usr/local/bin/magentoserver.sh
+fi
