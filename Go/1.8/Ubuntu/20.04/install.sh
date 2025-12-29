@@ -32,8 +32,8 @@ else
   install-package ca-certificates
   install-package curl
 
-  echo "Downloading Go"
-  curl -Lsf 'https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz' | tar -C '/usr/local' -xvzf -
+  echo "Installing Go"
+  curl -Lsf 'https://go.dev/dl/go1.8.3.linux-amd64.tar.gz' | tar -C '/usr/local' -xvzf -
 
   if [[ -f ~/.profile ]]; then
     echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.profile
