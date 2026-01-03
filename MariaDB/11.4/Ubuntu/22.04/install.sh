@@ -154,7 +154,7 @@ echo "Starting MariaDB"
   --user=mysql \
   --skip-log-error \
   --pid-file=/var/run/mysqld/mysqld.pid \
-  --socket=/var/run/mysqld/mysqld.sock
+  --socket=/var/run/mysqld/mysqld.sock &
 EOF
     chmod +x /usr/local/lib/start/10-mariadb.sh
   fi
