@@ -110,6 +110,24 @@ echo "Starting Apache"
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/apache.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-apache.sh"
+    cat <<EOF > /usr/local/lib/start/10-apache.sh
+#!/usr/bin/env bash
+/usr/sbin/apache2ctl start
+EOF
+    chmod +x /usr/local/lib/start/10-apache.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating start script at: /usr/local/lib/stop/10-apache.sh"
+    cat <<EOF > /usr/local/lib/stop/10-apache.sh
+#!/usr/bin/env bash
+/usr/sbin/apache2ctl stop
+EOF
+    chmod +x /usr/local/lib/stop/10-apache.sh
+  fi
 else
   echo "Starting Apache"
   service apache2 start
