@@ -77,8 +77,6 @@ fi
 add-gpg-repository "erlang.list" "https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/noble" "noble" "main" "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" "n"
 add-gpg-repository "rabbitmq.list" "https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/noble" "noble" "main" "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" "n"
 
-add-repository "focal-security.list" "http://security.ubuntu.com/ubuntu" "focal-security" "main"
-
 ## Install Erlang packages
 install-package erlang-base 1:27
 install-package erlang-asn1 1:27
