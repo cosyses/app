@@ -130,4 +130,24 @@ sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached" &
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/rabbitmq.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-rabbitmq.sh"
+    cat <<EOF > /usr/local/lib/start/10-rabbitmq.sh
+#!/usr/bin/env bash
+echo "Starting RabbitMQ"
+sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached"
+EOF
+    chmod +x /usr/local/lib/start/10-rabbitmq.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating start script at: /usr/local/lib/stop/10-rabbitmq.sh"
+    cat <<EOF > /usr/local/lib/stop/10-rabbitmq.sh
+#!/usr/bin/env bash
+echo "Stopping RabbitMQ"
+sudo -H -u rabbitmq bash -c "rabbitmqctl stop"
+EOF
+    chmod +x /usr/local/lib/stop/10-rabbitmq.sh
+  fi
 fi
