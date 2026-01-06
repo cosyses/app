@@ -121,6 +121,26 @@ echo "Starting Nginx"
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/nginx.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-nginx.sh"
+    cat <<EOF > /usr/local/lib/start/10-nginx.sh
+#!/usr/bin/env bash
+echo "Starting Nginx"
+/usr/sbin/nginx -c /etc/nginx/nginx.conf
+EOF
+    chmod +x /usr/local/lib/start/10-nginx.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating start script at: /usr/local/lib/stop/10-nginx.sh"
+    cat <<EOF > /usr/local/lib/stop/10-nginx.sh
+#!/usr/bin/env bash
+echo "Stopping Nginx"
+/usr/sbin/nginx -s quit
+EOF
+    chmod +x /usr/local/lib/stop/10-nginx.sh
+  fi
 else
   service nginx start
 fi
