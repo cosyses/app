@@ -160,7 +160,7 @@ EOF
   fi
 
   if [[ -d /usr/local/lib/stop/ ]]; then
-    echo "Creating start script at: /usr/local/lib/stop/10-mariadb.sh"
+    echo "Creating stop script at: /usr/local/lib/stop/10-mariadb.sh"
     cat <<EOF > /usr/local/lib/stop/10-mariadb.sh
 #!/usr/bin/env bash
 echo "Stopping MariaDB"

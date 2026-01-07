@@ -121,7 +121,7 @@ EOF
   fi
 
   if [[ -d /usr/local/lib/stop/ ]]; then
-    echo "Creating start script at: /usr/local/lib/stop/10-apache.sh"
+    echo "Creating stop script at: /usr/local/lib/stop/10-apache.sh"
     cat <<EOF > /usr/local/lib/stop/10-apache.sh
 #!/usr/bin/env bash
 /usr/sbin/apache2ctl stop

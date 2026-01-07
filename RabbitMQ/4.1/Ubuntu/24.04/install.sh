@@ -142,7 +142,7 @@ EOF
   fi
 
   if [[ -d /usr/local/lib/stop/ ]]; then
-    echo "Creating start script at: /usr/local/lib/stop/10-rabbitmq.sh"
+    echo "Creating stop script at: /usr/local/lib/stop/10-rabbitmq.sh"
     cat <<EOF > /usr/local/lib/stop/10-rabbitmq.sh
 #!/usr/bin/env bash
 echo "Stopping RabbitMQ"

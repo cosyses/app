@@ -110,7 +110,7 @@ EOF
   fi
 
   if [[ -d /usr/local/lib/stop/ ]]; then
-    echo "Creating start script at: /usr/local/lib/stop/10-valkey.sh"
+    echo "Creating stop script at: /usr/local/lib/stop/10-valkey.sh"
     cat <<EOF > /usr/local/lib/stop/10-valkey.sh
 #!/usr/bin/env bash
 echo "Stopping Valkey"
