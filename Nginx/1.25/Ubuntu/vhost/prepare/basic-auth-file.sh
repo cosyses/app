@@ -85,6 +85,7 @@ basicAuthUserFile="${basicAuthUserFilePath}/${serverName}.htpasswd"
 if [[ -f "${basicAuthUserFile}" ]]; then
   echo "Using basic user in file at: ${basicAuthUserFile}"
   set +e
+  # shellcheck disable=SC2091
   $(htpasswd -vb "${basicAuthUserFile}" "${basicAuthUserName}" "${basicAuthPassword}" >/dev/null 2>&1)
   result=$?
   set -e
