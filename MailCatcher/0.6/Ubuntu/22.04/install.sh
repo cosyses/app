@@ -118,8 +118,12 @@ EOF
     echo "Creating start script at: /usr/local/lib/start/10-mailcatcher.sh"
     cat <<EOF > /usr/local/lib/start/10-mailcatcher.sh
 #!/usr/bin/env bash
-echo "Stopping MailCatcher"
-lsof -nP -iTCP:${smtpPort} -sTCP:LISTEN | awk 'NR > 1 {print \$2}' | xargs kill -15
+echo "Starting MailCatcher"
+$(which mailcatcher) \
+  --smtp-ip ${smtpIp} \
+  --smtp-port ${smtpPort} \
+  --http-ip ${httpIp} \
+  --http-port ${httpPort} &
 EOF
     chmod +x /usr/local/lib/start/10-mailcatcher.sh
   fi
@@ -128,12 +132,8 @@ EOF
     echo "Creating stop script at: /usr/local/lib/stop/10-mailcatcher.sh"
     cat <<EOF > /usr/local/lib/stop/10-mailcatcher.sh
 #!/usr/bin/env bash
-echo "Starting MailCatcher"
-$(which mailcatcher) \
-  --smtp-ip ${smtpIp} \
-  --smtp-port ${smtpPort} \
-  --http-ip ${httpIp} \
-  --http-port ${httpPort} &
+echo "Stopping MailCatcher"
+lsof -nP -iTCP:${smtpPort} -sTCP:LISTEN | awk 'NR > 1 {print \$2}' | xargs kill -15
 EOF
     chmod +x /usr/local/lib/stop/10-mailcatcher.sh
   fi
