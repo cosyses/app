@@ -102,6 +102,30 @@ sudo -H -u ${userName} bash -c "/opt/opensearch/bin/opensearch -p /var/run/opens
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/opensearch.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-opensearch.sh"
+    cat <<EOF > /usr/local/lib/start/10-opensearch.sh
+#!/usr/bin/env bash
+echo "Starting OpenSearch"
+ulimit -n 65535
+sysctl -w vm.max_map_count=262144
+mkdir -p /var/run/opensearch
+chown ${userName}: /var/run/opensearch/
+sudo -H -u ${userName} bash -c "/opt/opensearch/bin/opensearch -p /var/run/opensearch/opensearch.pid -d"
+EOF
+    chmod +x /usr/local/lib/start/10-opensearch.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating stop script at: /usr/local/lib/stop/10-opensearch.sh"
+    cat <<EOF > /usr/local/lib/stop/10-opensearch.sh
+#!/usr/bin/env bash
+echo "Stopping OpenSearch"
+cat /var/run/opensearch/opensearch.pid | xargs kill -15 && until test ! -f /var/run/opensearch/opensearch.pid; do sleep 1; done
+EOF
+    chmod +x /usr/local/lib/stop/10-opensearch.sh
+  fi
 else
   if [[ -f /etc/systemd/system/opensearch.service ]]; then
     reloadDaemon=1
