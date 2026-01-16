@@ -95,6 +95,27 @@ mkdir -p /run/php
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/php.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-php.sh"
+    cat <<EOF > /usr/local/lib/start/10-php.sh
+#!/usr/bin/env bash
+echo "Starting PHP FPM"
+mkdir -p /run/php
+/usr/sbin/php-fpm8.0 --fpm-config /etc/php/8.0/fpm/php-fpm.conf
+EOF
+    chmod +x /usr/local/lib/start/10-php.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating stop script at: /usr/local/lib/stop/10-php.sh"
+    cat <<EOF > /usr/local/lib/stop/10-php.sh
+#!/usr/bin/env bash
+echo "Stopping PHP FPM"
+cat /run/php/php8.0-fpm.pid | xargs kill -15 && until test ! -f /run/php/php8.0-fpm.pid; do sleep 1; done
+EOF
+    chmod +x /usr/local/lib/stop/10-php.sh
+  fi
 else
   echo "Starting service"
   service php8.0-fpm start

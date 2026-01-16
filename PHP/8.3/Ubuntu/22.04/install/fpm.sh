@@ -59,21 +59,21 @@ if [[ -z "${phpVersion}" ]]; then
     --type cli
 fi
 
-install-package php8.2-fpm
+install-package php8.3-fpm
 
 echo "Stopping service"
-service php8.2-fpm stop
+service php8.3-fpm stop
 
-replace-file-content /etc/php/8.2/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php8.2-fpm.log"
+replace-file-content /etc/php/8.3/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php8.3-fpm.log"
 
-replace-file-content /etc/php/8.2/fpm/php.ini "max_execution_time = 3600" "max_execution_time = 30"
-replace-file-content /etc/php/8.2/fpm/php.ini "max_input_time = 3600" "max_input_time = 60"
-replace-file-content /etc/php/8.2/fpm/php.ini "max_input_vars = 100000" "; max_input_vars = 1000"
-replace-file-content /etc/php/8.2/fpm/php.ini "memory_limit = 4096M" "memory_limit = 128M"
-add-file-content-after /etc/php/8.2/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
+replace-file-content /etc/php/8.3/fpm/php.ini "max_execution_time = 3600" "max_execution_time = 30"
+replace-file-content /etc/php/8.3/fpm/php.ini "max_input_time = 3600" "max_input_time = 60"
+replace-file-content /etc/php/8.3/fpm/php.ini "max_input_vars = 100000" "; max_input_vars = 1000"
+replace-file-content /etc/php/8.3/fpm/php.ini "memory_limit = 4096M" "memory_limit = 128M"
+add-file-content-after /etc/php/8.3/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
 
-replace-file-content /etc/php/8.2/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
-replace-file-content /etc/php/8.2/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php8.2-fpm.sock"
+replace-file-content /etc/php/8.3/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
+replace-file-content /etc/php/8.3/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php8.3-fpm.sock"
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"
@@ -82,7 +82,7 @@ if [[ -f /.dockerenv ]]; then
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
   echo "Stopping PHP FPM"
-  kill "\$(cat /run/php/php8.2-fpm.pid)"
+  kill "\$(cat /run/php/php8.3-fpm.pid)"
   exit
 }
 for command in "\$@"; do
@@ -91,7 +91,7 @@ for command in "\$@"; do
 done
 echo "Starting PHP FPM"
 mkdir -p /run/php
-/usr/sbin/php-fpm8.2 --fpm-config /etc/php/8.2/fpm/php-fpm.conf
+/usr/sbin/php-fpm8.3 --fpm-config /etc/php/8.3/fpm/php-fpm.conf
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/php.sh
@@ -102,7 +102,7 @@ EOF
 #!/usr/bin/env bash
 echo "Starting PHP FPM"
 mkdir -p /run/php
-/usr/sbin/php-fpm8.2 --fpm-config /etc/php/8.2/fpm/php-fpm.conf
+/usr/sbin/php-fpm8.3 --fpm-config /etc/php/8.3/fpm/php-fpm.conf
 EOF
     chmod +x /usr/local/lib/start/10-php.sh
   fi
@@ -112,14 +112,14 @@ EOF
     cat <<EOF > /usr/local/lib/stop/10-php.sh
 #!/usr/bin/env bash
 echo "Stopping PHP FPM"
-cat /run/php/php8.2-fpm.pid | xargs kill -15 && until test ! -f /run/php/php8.2-fpm.pid; do sleep 1; done
+cat /run/php/php8.3-fpm.pid | xargs kill -15 && until test ! -f /run/php/php8.3-fpm.pid; do sleep 1; done
 EOF
     chmod +x /usr/local/lib/stop/10-php.sh
   fi
 else
   echo "Starting service"
-  service php8.2-fpm start
+  service php8.3-fpm start
 
   echo "Enabling autostart"
-  systemctl enable php8.2-fpm --now
+  systemctl enable php8.3-fpm --now
 fi
