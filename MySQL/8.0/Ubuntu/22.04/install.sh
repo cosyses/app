@@ -105,6 +105,7 @@ sed -i "s/bind-address.*/bind-address = ${bindAddress}/g" /etc/mysql/mysql.conf.
 
 if [[ -f /.dockerenv ]]; then
   echo "Stopping MySQL"
+  export MYSQL_PWD="${databaseRootPassword}"
   mysqladmin shutdown
 
   echo "Creating start script at: /usr/local/bin/mysql.sh"
