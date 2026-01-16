@@ -125,7 +125,28 @@ echo "Starting MySQL"
 /usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
 tail -f /dev/null & wait \$!
 EOF
-  chmod 0700 /usr/local/bin/mysql.sh
+  chmod +x /usr/local/bin/mysql.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-mysql.sh"
+    cat <<EOF > /usr/local/lib/start/10-mysql.sh
+#!/usr/bin/env bash
+echo "Starting MySQL"
+/usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
+EOF
+    chmod +x /usr/local/lib/start/10-mysql.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating stop script at: /usr/local/lib/stop/10-mysql.sh"
+    cat <<EOF > /usr/local/lib/stop/10-mysql.sh
+#!/usr/bin/env bash
+echo "Stopping MySQL"
+export MYSQL_PWD="${databaseRootPassword}"
+mysqladmin shutdown
+EOF
+    chmod +x /usr/local/lib/stop/10-mysql.sh
+  fi
 else
   echo "Restarting MySQL"
   service mysql restart
