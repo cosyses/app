@@ -55,11 +55,11 @@ if [[ -z "${adminPassword}" ]]; then
   echo "Using generated password: ${adminPassword}"
 fi
 
-add-repository mongodb.list https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse https://www.mongodb.org/static/pgp/server-5.0.asc
+add-repository mongodb.list https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/8.0 multiverse https://www.mongodb.org/static/pgp/server-8.0.asc
 
 install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-install-package mongodb-org 5.0.20
+install-package mongodb-org 8.0.17
 
 echo "Allowing binding from: ${bindAddress}"
 replace-file-content /etc/mongod.conf "bindIp: ${bindAddress}" "bindIp: 127.0.0.1"
