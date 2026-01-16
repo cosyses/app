@@ -17,9 +17,6 @@ OPTIONS:
   --databaseName          Database name to grant the user rights to (required if create database or grant database)
   --databaseRootUser      Root user, default: root
   --databaseRootPassword  Root password
-  --grantSuperRights      Grant user super rights, default: no
-  --grantDatabase         Grant rights to database, default: no
-  --createDatabase        Create initial database, default: no
 
 Example: ${scriptName} --databaseUser newuser --databasePassword password --databaseName database --databaseRootPassword secret --createDatabase yes
 EOF
@@ -46,13 +43,9 @@ fi
 databaseHost=
 databasePort=
 databaseUser=
-databasePassword=
 databaseName=
 databaseRootUser=
 databaseRootPassword=
-grantSuperRights=
-grantDatabase=
-createDatabase=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${databaseHost}" ]] || [[ "${databaseHost}" == "localhost" ]]; then
@@ -69,12 +62,6 @@ if [[ -z "${databaseUser}" ]]; then
   exit 1
 fi
 
-if [[ -z "${databasePassword}" ]]; then
-  echo "No database password specified!"
-  usage
-  exit 1
-fi
-
 if [[ -z "${databaseRootUser}" ]]; then
   databaseRootUser="root"
 fi
@@ -85,19 +72,7 @@ if [[ -z "${databaseRootPassword}" ]]; then
   exit 1
 fi
 
-if [[ -z "${grantSuperRights}" ]]; then
-  grantSuperRights="no"
-fi
-
-if [[ -z "${grantDatabase}" ]]; then
-  grantDatabase="no"
-fi
-
-if [[ -z "${createDatabase}" ]]; then
-  createDatabase="no"
-fi
-
-if { [[ "${grantDatabase}" == "yes" ]] || [[ "${createDatabase}" == "yes" ]]; } && [[ -z "${databaseName}" ]]; then
+if [[ -z "${databaseName}" ]]; then
   echo "No database name specified!"
   usage
   exit 1
@@ -108,39 +83,9 @@ userNames=( "'${databaseUser}'@'%'" "'${databaseUser}'@'127.0.0.1'" "'${database
 export MYSQL_PWD="${databaseRootPassword}"
 
 for userName in "${userNames[@]}"; do
-  echo "Adding user: ${userName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
-
-  if [[ "${grantDatabase}" == "yes" ]] || [[ "${createDatabase}" == "yes" ]]; then
-    cosyses \
-      --applicationName "${applicationName}" \
-      --applicationVersion "${applicationVersion}" \
-      --applicationScript "grant-user.sh" \
-      --databaseHost "${databaseHost}" \
-      --databasePort "${databasePort}" \
-      --databaseUser "${databaseUser}" \
-      --databaseName "${databaseName}" \
-      --databaseRootUser "${databaseRootUser}" \
-      --databaseRootPassword "${databaseRootPassword}"
-  fi
-
-  if [[ "${grantSuperRights}" == "yes" ]]; then
-    echo "Granting super rights to user: ${userName}"
-    mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT SUPER ON *.* TO ${userName};"
-  fi
+  echo "Granting all rights to user: ${userName}"
+  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT ALL ON ${databaseName}.* TO ${userName} WITH GRANT OPTION;"
 done
 
 echo "Flushing privileges"
 mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "FLUSH PRIVILEGES;"
-
-if [[ "${createDatabase}" == "yes" ]]; then
-  cosyses \
-    --applicationName "${applicationName}" \
-    --applicationVersion "${applicationVersion}" \
-    --applicationScript "create-database.sh" \
-    --databaseHost "${databaseHost}" \
-    --databasePort "${databasePort}" \
-    --databaseUser "${databaseUser}" \
-    --databasePassword "${databasePassword}" \
-    --databaseName "${databaseName}"
-fi
