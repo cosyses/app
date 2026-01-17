@@ -32,7 +32,7 @@ OPTIONS:
   --basicAuthPassword         Basic auth password (optional)
   --basicAuthUserFilePath     Basic auth user file path (optional), default: /var/www
   --fpmHostName               Host name of PHP FPM instance
-  --fpmHostPort               Port of PHP FPM instance
+  --fpmHostPort               Port of PHP FPM instance, default: 9000
   --rootPath                  Path of root, default: /
   --rootPathIndex             Index of root path, default: /index.php
   --phpPath                   Path of PHP, default: \.php$
@@ -179,6 +179,10 @@ fi
 
 if [[ -z "${basicAuthUserFilePath}" ]]; then
   basicAuthUserFilePath="/var/www"
+fi
+
+if [[ -z "${fpmHostPort}" ]]; then
+  fpmHostPort="9000"
 fi
 
 if [[ -z "${rootPath}" ]]; then
