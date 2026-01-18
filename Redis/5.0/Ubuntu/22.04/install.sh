@@ -95,6 +95,26 @@ echo "Starting Redis"
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/redis.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-redis.sh"
+    cat <<EOF > /usr/local/lib/start/10-redis.sh
+#!/usr/bin/env bash
+echo "Starting Redis"
+/usr/local/bin/redis-server /etc/redis/redis_${port}.conf --daemonize yes
+EOF
+    chmod +x /usr/local/lib/start/10-redis.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating stop script at: /usr/local/lib/stop/10-redis.sh"
+    cat <<EOF > /usr/local/lib/stop/10-redis.sh
+#!/usr/bin/env bash
+echo "Stopping Redis"
+cat /var/run/redis_${port}.pid | xargs kill -15 && until test ! -f /var/run/redis_${port}.pid; do sleep 1; done
+EOF
+    chmod +x /usr/local/lib/stop/10-redis.sh
+  fi
 else
   echo "Restarting Redis"
   service "redis_${port}" restart
