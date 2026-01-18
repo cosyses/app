@@ -83,8 +83,8 @@ userNames=( "'${databaseUser}'@'%'" "'${databaseUser}'@'127.0.0.1'" "'${database
 export MYSQL_PWD="${databaseRootPassword}"
 
 for userName in "${userNames[@]}"; do
-  echo "Granting all rights to database: ${databaseName} to user: ${userName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT ALL ON ${databaseName}.* TO ${userName} WITH GRANT OPTION;"
+  echo "Granting super rights to user: ${userName}"
+  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT SUPER ON *.* TO ${userName};"
 done
 
 echo "Flushing privileges"

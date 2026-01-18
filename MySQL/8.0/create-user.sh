@@ -110,28 +110,36 @@ export MYSQL_PWD="${databaseRootPassword}"
 for userName in "${userNames[@]}"; do
   echo "Adding user: ${userName}"
   mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
-
-  if [[ "${grantDatabase}" == "yes" ]] || [[ "${createDatabase}" == "yes" ]]; then
-    cosyses \
-      --applicationName "${applicationName}" \
-      --applicationVersion "${applicationVersion}" \
-      --applicationScript "grant-user.sh" \
-      --databaseHost "${databaseHost}" \
-      --databasePort "${databasePort}" \
-      --databaseUser "${databaseUser}" \
-      --databaseName "${databaseName}" \
-      --databaseRootUser "${databaseRootUser}" \
-      --databaseRootPassword "${databaseRootPassword}"
-  fi
-
-  if [[ "${grantSuperRights}" == "yes" ]]; then
-    echo "Granting super rights to user: ${userName}"
-    mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT SUPER ON *.* TO ${userName};"
-  fi
 done
 
 echo "Flushing privileges"
 mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "FLUSH PRIVILEGES;"
+
+if [[ "${grantDatabase}" == "yes" ]] || [[ "${createDatabase}" == "yes" ]]; then
+  cosyses \
+    --applicationName "${applicationName}" \
+    --applicationVersion "${applicationVersion}" \
+    --applicationScript "grant-user.sh" \
+    --databaseHost "${databaseHost}" \
+    --databasePort "${databasePort}" \
+    --databaseUser "${databaseUser}" \
+    --databaseName "${databaseName}" \
+    --databaseRootUser "${databaseRootUser}" \
+    --databaseRootPassword "${databaseRootPassword}"
+fi
+
+if [[ "${grantSuperRights}" == "yes" ]]; then
+  cosyses \
+    --applicationName "${applicationName}" \
+    --applicationVersion "${applicationVersion}" \
+    --applicationScript "grant-super.sh" \
+    --databaseHost "${databaseHost}" \
+    --databasePort "${databasePort}" \
+    --databaseUser "${databaseUser}" \
+    --databaseName "${databaseName}" \
+    --databaseRootUser "${databaseRootUser}" \
+    --databaseRootPassword "${databaseRootPassword}"
+fi
 
 if [[ "${createDatabase}" == "yes" ]]; then
   cosyses \
