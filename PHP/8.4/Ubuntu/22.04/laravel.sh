@@ -6,6 +6,7 @@ test ! -e /usr/local/include/curl && ln -s /usr/include/x86_64-linux-gnu/curl /u
 install-package php8.4-curl
 install-package php8.4-mbstring
 install-package php8.4-mysql
+install-package php8.4-sqlite3
 install-package php8.4-xml
 
 if [[ ! -f /.dockerenv ]]; then
