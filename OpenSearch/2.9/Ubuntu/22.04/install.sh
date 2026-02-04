@@ -86,7 +86,7 @@ if [[ -f /.dockerenv ]]; then
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
   echo "Stopping OpenSearch"
-  cat /var/run/opensearch/opensearch.pid | xargs kill -15
+  cat /var/run/opensearch/opensearch.pid | xargs kill -15 && until test ! -f /var/run/opensearch/opensearch.pid; do sleep 1; done
   exit
 }
 for command in "\$@"; do
