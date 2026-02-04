@@ -43,7 +43,7 @@ install-package pkg-config
 install-package tcl
 install-package tk
 
-redisVersion="7.0.14"
+redisVersion="7.2.12"
 
 if [[ ! -d /usr/local/source/redis/redis-${redisVersion} ]]; then
   mkdir -p /usr/local/source/redis

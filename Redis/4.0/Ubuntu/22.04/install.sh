@@ -43,16 +43,18 @@ install-package pkg-config
 install-package tcl
 install-package tk
 
-if [[ ! -d /usr/local/source/redis/redis-4.0.14 ]]; then
+redisVersion="4.0.14"
+
+if [[ ! -d /usr/local/source/redis/redis-${redisVersion} ]]; then
   mkdir -p /usr/local/source/redis
   cd /usr/local/source/redis
-  wget -nv http://download.redis.io/releases/redis-4.0.14.tar.gz
-  tar xzf redis-4.0.14.tar.gz
-  cd redis-4.0.14
+  wget -nv http://download.redis.io/releases/redis-${redisVersion}.tar.gz
+  tar xzf redis-${redisVersion}.tar.gz
+  cd redis-${redisVersion}
   make
   make install
 else
-  cd /usr/local/source/redis/redis-4.0.14
+  cd /usr/local/source/redis/redis-${redisVersion}
 fi
 
 cd utils

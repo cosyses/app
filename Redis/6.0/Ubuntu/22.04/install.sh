@@ -43,12 +43,14 @@ install-package pkg-config
 install-package tcl
 install-package tk
 
-if [[ ! -d /usr/local/source/redis/redis-6.0.20 ]]; then
+redisVersion="6.0.20"
+
+if [[ ! -d /usr/local/source/redis/redis-${redisVersion} ]]; then
   mkdir -p /usr/local/source/redis
   cd /usr/local/source/redis
-  wget -nv http://download.redis.io/releases/redis-6.0.20.tar.gz
-  tar xzf redis-6.0.20.tar.gz
-  cd redis-6.0.20
+  wget -nv http://download.redis.io/releases/redis-${redisVersion}.tar.gz
+  tar xzf redis-${redisVersion}.tar.gz
+  cd redis-${redisVersion}
   make
   make install
   sed -i '76s/^/#/' utils/install_server.sh
@@ -61,7 +63,7 @@ if [[ ! -d /usr/local/source/redis/redis-6.0.20 ]]; then
   sed -i '83s/^/#/' utils/install_server.sh
   sed -i '84s/^/#/' utils/install_server.sh
 else
-  cd /usr/local/source/redis/redis-6.0.20
+  cd /usr/local/source/redis/redis-${redisVersion}
 fi
 
 cd utils
