@@ -137,6 +137,38 @@ nohup /usr/sbin/mysqld \
 tail -f mariadb.out & wait \$!
 EOF
   chmod +x /usr/local/bin/mariadb.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-mariadb.sh"
+    cat <<EOF > /usr/local/lib/start/10-mariadb.sh
+#!/usr/bin/env bash
+/usr/bin/install \
+  -m 755 \
+  -o mysql \
+  -g root \
+  -d /var/run/mysqld
+echo "Starting MariaDB"
+/usr/sbin/mysqld \
+  --basedir=/usr \
+  --datadir=/var/lib/mysql \
+  --plugin-dir=/usr/lib/mysql/plugin \
+  --user=mysql \
+  --skip-log-error \
+  --pid-file=/var/run/mysqld/mysqld.pid \
+  --socket=/var/run/mysqld/mysqld.sock &
+EOF
+    chmod +x /usr/local/lib/start/10-mariadb.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating stop script at: /usr/local/lib/stop/10-mariadb.sh"
+    cat <<EOF > /usr/local/lib/stop/10-mariadb.sh
+#!/usr/bin/env bash
+echo "Stopping MariaDB"
+mariadb-admin shutdown
+EOF
+    chmod +x /usr/local/lib/stop/10-mariadb.sh
+  fi
 else
   echo "Starting MariaDB"
   /etc/init.d/mariadb start
