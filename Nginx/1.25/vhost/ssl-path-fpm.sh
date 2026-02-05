@@ -194,6 +194,9 @@ server {
     fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
     fastcgi_param DOCUMENT_ROOT \$realpath_root;
     fastcgi_param PATH_INFO \$fastcgi_path_info;
+    fastcgi_buffers 1024 8k;
+    fastcgi_buffer_size 128k;
+    fastcgi_busy_buffers_size 128k;
   }
   error_log ${logPath}/${serverName}-nginx-ssl-error.log ${logLevel};
   access_log ${logPath}/${serverName}-nginx-ssl-access.log;
