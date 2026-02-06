@@ -44,10 +44,6 @@ if [[ -z "${sender}" ]]; then
   sender="webmaster@localhost.local"
 fi
 
-cosyses \
-  --applicationName mhsendmail \
-  --applicationVersion 0.2
-
 phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
 
 configurationPath="/etc/php/${phpVersion}/mods-available"
