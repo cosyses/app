@@ -98,7 +98,7 @@ if [[ -n \$(get-installed-package-version apache2) ]]; then
 fi
 if [[ -n \$(get-installed-package-version php${phpVersion}-fpm) ]]; then
   echo "Reloading FPM"
-  kill -USR2 \$(ps aux | grep "php-fpm: master" | grep -v "grep php-fpm: master" | awk '{print $2}')
+  kill -USR2 \$(ps aux | grep "php-fpm: master" | grep -v "grep php-fpm: master" | awk '{print \$2}')
 fi
 export PHP_IDE_CONFIG="serverName=cli"
 EOF
@@ -120,7 +120,7 @@ if [[ -n \$(get-installed-package-version apache2) ]]; then
 fi
 if [[ -n \$(get-installed-package-version php${phpVersion}-fpm) ]]; then
   echo "Reloading FPM"
-  kill -USR2 \$(ps aux | grep "php-fpm: master" | grep -v "grep php-fpm: master" | awk '{print $2}')
+  kill -USR2 \$(ps aux | grep "php-fpm: master" | grep -v "grep php-fpm: master" | awk '{print \$2}')
 fi
 EOF
 
