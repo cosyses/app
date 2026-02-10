@@ -74,6 +74,16 @@ if [[ -z "${adminUserName}" ]]; then
   adminUserName="admin"
 fi
 
+install-package locales
+
+{ echo "LC_ALL=en_US.UTF-8"; echo "LANG=en_US.UTF-8"; echo "LANGUAGE=en_US.UTF-8"; } >> /etc/environment
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+locale-gen en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
 add-gpg-repository "erlang.list" "https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/noble" "noble" "main" "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" "n"
 add-gpg-repository "rabbitmq.list" "https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/noble" "noble" "main" "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" "n"
 
