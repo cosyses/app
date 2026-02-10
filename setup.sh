@@ -122,8 +122,8 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       else
         apt-get update
       fi
-      apt-get install -y apt-utils
-      apt-get install -y lsb-release
+      DEBIAN_FRONTEND="noninteractive" apt-get install -y apt-utils
+      DEBIAN_FRONTEND="noninteractive" apt-get install -y lsb-release
     else
       >&2 echo "Unsupported OS: ${distribution}"
       exit 1
@@ -199,7 +199,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
         if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
           yum install -y "${requiredPackage}" 2>&1
         elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-          apt-get install -y "${requiredPackage}" 2>&1
+          DEBIAN_FRONTEND="noninteractive" apt-get install -y "${requiredPackage}" 2>&1
         elif [[ "${distribution}" == "Fedora" ]]; then
           dnf install -y "${requiredPackage}" 2>&1
         elif [[ "${distribution}" == "openSUSE Leap" ]]; then
