@@ -103,7 +103,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       yum install -y redhat-lsb-core
     elif [[ "${distribution}" == "Debian GNU/Linux" ]]; then
       apt-get update
-      apt-get install -y lsb-release
+      DEBIAN_FRONTEND="noninteractive" apt-get install -y lsb-release
     elif [[ "${distribution}" == "Fedora" ]]; then
       dnf makecache
       dnf install -y redhat-lsb
