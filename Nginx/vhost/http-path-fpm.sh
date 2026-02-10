@@ -12,25 +12,24 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help                   Show this message
-  --httpPort               HTTP port, default: 80
-  --webPath                Web path
-  --webUser                Web user, default: www-data
-  --webGroup               Web group, default: www-data
-  --logPath                Log path, default: /var/log/nginx
-  --logLevel               Log level, default: warn
-  --serverName             Server name
-  --fpmHostName            Host name of PHP FPM instance, default: localhost
-  --fpmHostPort            Port of PHP FPM instance, default: 9000
-  --rootPath               Path of root, default: /
-  --rootPathIndex          Index of root path, default: /index.php
-  --phpPath                Path of PHP, default: \.php$
-  --basicAuthUserName      Basic auth user name
-  --basicAuthPassword      Basic auth password
-  --basicAuthUserFilePath  Basic auth user file path, default: /var/www
-  --append                 Append to existing configuration if configuration file already exists (yes/no), default: no
+  --help            Show this message
+  --httpPort        HTTP port, default: 80
+  --webPath         Web path
+  --webUser         Web user, default: www-data
+  --webGroup        Web group, default: www-data
+  --logPath         Log path, default: /var/log/nginx
+  --logLevel        Log level, default: warn
+  --serverName      Server name
+  --fpmHostName     Host name of PHP FPM instance, default: localhost
+  --fpmHostPort     Port of PHP FPM instance, default: 9000
+  --fpmIndexScript  Index script of FPM server, default: index.php
+  --rootPath        Path of root, default: /
+  --rootPathIndex   Index of root path, default: /index.php
+  --phpPath         Path of PHP, default: \.php$
+  --application     Install configuration for this application
+  --append          Append to existing configuration if configuration file already exists (yes/no), default: no
 
-Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm --basicAuthUserName login --basicAuthPassword password
+Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm
 EOF
 }
 
@@ -61,12 +60,11 @@ logLevel=
 serverName=
 fpmHostName=
 fpmHostPort=
+fpmIndexScript=
 rootPath=
 rootPathIndex=
 phpPath=
-basicAuthUserName=
-basicAuthPassword=
-basicAuthUserFilePath=
+application=
 append=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -110,28 +108,20 @@ if [[ -z "${fpmHostPort}" ]]; then
   fpmHostPort="9000"
 fi
 
+if [[ -z "${fpmIndexScript}" ]]; then
+  fpmIndexScript="index.php"
+fi
+
 if [[ -z "${rootPath}" ]]; then
   rootPath="/"
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
-  rootPathIndex="/index.php"
+  rootPathIndex="/index.php?\$args"
 fi
 
 if [[ -z "${phpPath}" ]]; then
   phpPath="\.php\$"
-fi
-
-if [[ -z "${basicAuthUserName}" ]]; then
-  echo "No basic auth user name specified!"
-fi
-
-if [[ -z "${basicAuthPassword}" ]]; then
-  echo "No basic auth password specified!"
-fi
-
-if [[ -z "${basicAuthUserFilePath}" ]]; then
-  basicAuthUserFilePath="/var/www"
 fi
 
 if [[ -z "${append}" ]]; then
@@ -157,25 +147,13 @@ cosyses \
 cosyses \
   --applicationName "${applicationName}" \
   --applicationVersion "${applicationVersion}" \
-  --applicationScript "vhost/prepare/basic-auth-file.sh" \
-  --serverName "${serverName}" \
-  --webUser "${webUser}" \
-  --webGroup "${webGroup}" \
-  --basicAuthUserName "${basicAuthUserName}" \
-  --basicAuthPassword "${basicAuthPassword}" \
-  --basicAuthUserFilePath "${basicAuthUserFilePath}"
-
-cosyses \
-  --applicationName "${applicationName}" \
-  --applicationVersion "${applicationVersion}" \
   --applicationScript "vhost/prepare/configuration-file.sh" \
   --serverName "${serverName}" \
   --append "${append}"
 
 configurationFile="/etc/nginx/conf.d/${serverName}.conf"
-basicAuthUserFile="${basicAuthUserFilePath}/${serverName}.htpasswd"
 
-echo "Creating HTTP host at: ${configurationFile} with basic auth file: ${basicAuthUserFile}"
+echo "Creating HTTP host at: ${configurationFile}"
 
 cat <<EOF | tee -a "${configurationFile}" > /dev/null
 server {
@@ -186,21 +164,32 @@ server {
   error_page 500 502 503 504 /50x.html;
   location ${rootPath} {
     try_files \$uri \$uri/ ${rootPathIndex};
-    auth_basic "${serverName}";
-    auth_basic_user_file ${basicAuthUserFile};
   }
-  location ~ ${phpPath} {
-    try_files \$uri =404;
-    fastcgi_split_path_info ^(.+\.php)(/.+)\$;
-    fastcgi_pass ${fpmHostName}:${fpmHostPort};
-    include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
-    fastcgi_param DOCUMENT_ROOT \$realpath_root;
-    fastcgi_param PATH_INFO \$fastcgi_path_info;
-    fastcgi_buffers 1024 8k;
-    fastcgi_buffer_size 128k;
-    fastcgi_busy_buffers_size 128k;
-  }
+EOF
+
+cosyses \
+  --applicationName "${applicationName}" \
+  --applicationVersion "${applicationVersion}" \
+  --applicationScript "vhost/server/fpm.sh" \
+  --serverName "${serverName}" \
+  --fpmHostName "${fpmHostName}" \
+  --fpmHostPort "${fpmHostPort}" \
+  --fpmIndexScript "${fpmIndexScript}" \
+  --phpPath "${phpPath}"
+
+if [[ -n "${application}" ]]; then
+  cosyses \
+    --applicationName "${applicationName}" \
+    --applicationVersion "${applicationVersion}" \
+    --applicationScript "vhost/server/${application}.sh" \
+    --serverName "${serverName}" \
+    --webPath "${webPath}" \
+    --fpmHostName "${fpmHostName}" \
+    --fpmHostPort "${fpmHostPort}" \
+    --fpmIndexScript "${fpmIndexScript}"
+fi
+
+cat <<EOF | tee -a "${configurationFile}" > /dev/null
   error_log ${logPath}/${serverName}-nginx-http-error.log ${logLevel};
   access_log ${logPath}/${serverName}-nginx-http-access.log;
 }

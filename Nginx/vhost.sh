@@ -33,6 +33,7 @@ OPTIONS:
   --basicAuthUserFilePath     Basic auth user file path (optional), default: /var/www
   --fpmHostName               Host name of PHP FPM instance
   --fpmHostPort               Port of PHP FPM instance, default: 9000
+  --fpmIndexScript            Index script of FPM server, default: index.php
   --rootPath                  Path of root, default: /
   --rootPathIndex             Index of root path, default: /index.php
   --phpPath                   Path of PHP, default: \.php$
@@ -82,6 +83,7 @@ basicAuthPassword=
 basicAuthUserFilePath=
 fpmHostName=
 fpmHostPort=
+fpmIndexScript=
 rootPath=
 rootPathIndex=
 phpPath=
@@ -183,6 +185,10 @@ fi
 
 if [[ -z "${fpmHostPort}" ]]; then
   fpmHostPort="9000"
+fi
+
+if [[ -z "${fpmIndexScript}" ]]; then
+  fpmIndexScript="index.php"
 fi
 
 if [[ -z "${rootPath}" ]]; then
@@ -343,6 +349,7 @@ else
           --serverName "${serverName}" \
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
+          --fpmIndexScript "${fpmIndexScript}" \
           --basicAuthUserName "${basicAuthUserName}" \
           --basicAuthPassword "${basicAuthPassword}" \
           --basicAuthUserFilePath "${basicAuthUserFilePath}" \
@@ -379,6 +386,7 @@ else
           --serverName "${serverName}" \
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
+          --fpmIndexScript "${fpmIndexScript}" \
           --append yes
       else
         if [[ -n "${redirectTargetProtocol}" ]] && [[ "${redirectTargetProtocol}" != "-" ]] && [[ -n "${redirectTargetServerName}" ]] && [[ "${redirectTargetServerName}" != "-" ]]; then
@@ -470,6 +478,7 @@ if [[ ${sslTerminated} == "no" ]]; then
           --serverName "${serverName}" \
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
+          --fpmIndexScript "${fpmIndexScript}" \
           --rootPath "${rootPath}" \
           --rootPathIndex "${rootPathIndex}" \
           --phpPath "${phpPath}" \
@@ -509,6 +518,7 @@ if [[ ${sslTerminated} == "no" ]]; then
           --serverName "${serverName}" \
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
+          --fpmIndexScript "${fpmIndexScript}" \
           --rootPath "${rootPath}" \
           --rootPathIndex "${rootPathIndex}" \
           --phpPath "${phpPath}" \
