@@ -64,7 +64,7 @@ chown -R "${userName}" "/home/${userName}"
 
 version="3.4.0"
 
-wget -nv "https://artifacts.opensearch.org/releases/bundle/opensearch/${version}/opensearch-${version}-linux-x64.tar.gz"
+wget -nv "https://artifacts.opensearch.org/releases/bundle/opensearch/${version}/opensearch-${version}-linux-x64.tar.gz" 2>&1
 tar xf "opensearch-${version}-linux-x64.tar.gz"
 mv "opensearch-${version}" /opt/opensearch
 chown -R opensearch /opt/opensearch

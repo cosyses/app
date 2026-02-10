@@ -62,7 +62,7 @@ usermod -aG "${groupName}" "${userName}"
 mkdir -p "/home/${userName}"
 chown -R "${userName}" "/home/${userName}"
 
-wget -nv https://artifacts.opensearch.org/releases/bundle/opensearch/2.14.0/opensearch-2.14.0-linux-x64.tar.gz
+wget -nv https://artifacts.opensearch.org/releases/bundle/opensearch/2.14.0/opensearch-2.14.0-linux-x64.tar.gz 2>&1
 tar xf opensearch-2.14.0-linux-x64.tar.gz
 mv opensearch-2.14.0 /opt/opensearch
 chown -R opensearch /opt/opensearch
