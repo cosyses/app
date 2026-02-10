@@ -77,7 +77,7 @@ add-certificate "default" "${sslCertFile}" "${sslKeyFile}"
 
 install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
-add-gpg-repository "nginx.list" "http://nginx.org/packages/mainline/ubuntu/" "focal" "nginx" "http://nginx.org/keys/nginx_signing.key" "y"
+add-gpg-repository "nginx.list" "http://nginx.org/packages/mainline/ubuntu/" "jammy" "nginx" "http://nginx.org/keys/nginx_signing.key" "y"
 install-package nginx 1.25
 
 add-file-content-before /etc/security/limits.conf "nginx       soft    nofile  32768" "# End of file" 1
