@@ -62,6 +62,7 @@ for unparsedParametersKey in "${!unparsedParameters[@]}"; do
 done
 
 distribution=$(awk -F= '/^NAME/{print $2}' /etc/os-release | tr -d '"')
+distributionVersion=$(awk -F= '/^VERSION_ID/{print $2}' /etc/os-release | tr -d '"')
 
 if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
   basePath="/usr/local"
@@ -101,7 +102,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       yum clean all
       yum install -y redhat-lsb-core
     elif [[ "${distribution}" == "Debian GNU/Linux" ]]; then
-      apt-get update --allow-releaseinfo-change
+      apt-get update
       apt-get install -y lsb-release
     elif [[ "${distribution}" == "Fedora" ]]; then
       dnf makecache
@@ -116,7 +117,12 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       yum makecache
       yum install -y redhat-lsb-core
     elif [[ "${distribution}" == "Ubuntu" ]]; then
-      apt-get update --allow-releaseinfo-change
+      if [[ $(printf '%s\n' "18.04" "${distributionVersion}" | sort -C -V && echo "yes" || echo "no") == "yes" ]]; then
+        apt-get update --allow-releaseinfo-change
+      else
+        apt-get update
+      fi
+      apt-get install -y apt-utils
       apt-get install -y lsb-release
     else
       >&2 echo "Unsupported OS: ${distribution}"
@@ -139,14 +145,20 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
   else
     if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
       yum makecache
-    elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-      apt-get update --allow-releaseinfo-change
+    elif [[ "${distribution}" == "Debian GNU/Linux" ]]; then
+      apt-get update
     elif [[ "${distribution}" == "Fedora" ]]; then
       dnf makecache
     elif [[ "${distribution}" == "Manjaro Linux" ]]; then
       pacman -Fy
     elif [[ "${distribution}" == "openSUSE Leap" ]]; then
       zypper refresh
+    elif [[ "${distribution}" == "Ubuntu" ]]; then
+      if [[ $(printf '%s\n' "18.04" "${distributionVersion}" | sort -C -V && echo "yes" || echo "no") == "yes" ]]; then
+        apt-get update --allow-releaseinfo-change
+      else
+        apt-get update
+      fi
     else
       >&2 echo "Unsupported OS: ${distribution}"
       exit 1
