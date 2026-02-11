@@ -29,7 +29,7 @@ OPTIONS:
   --basicAuthUserName      Basic auth user name
   --basicAuthPassword      Basic auth password
   --basicAuthUserFilePath  Basic auth user file path, default: /var/www
-  --application            Install configuration for this application
+  --application            Install configuration for this application (optional)
   --append                 Append to existing configuration if configuration file already exists (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm --basicAuthUserName login --basicAuthPassword password
@@ -209,7 +209,7 @@ cosyses \
   --fpmIndexScript "${fpmIndexScript}" \
   --phpPath "${phpPath}"
 
-if [[ -n "${application}" ]]; then
+if [[ -n "${application}" ]] && [[ "${application}" != "no" ]]; then
   cosyses \
     --applicationName "${applicationName}" \
     --applicationVersion "${applicationVersion}" \

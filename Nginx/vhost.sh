@@ -39,6 +39,7 @@ OPTIONS:
   --phpPath                   Path of PHP, default: \.php$
   --redirectTargetProtocol    Protocol of redirect target, default: https
   --redirectTargetServerName  Server name of target
+  --application               Install configuration for this application
   --overwrite                 Overwrite existing files (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --sslTerminated no --forceSsl yes
@@ -89,6 +90,7 @@ rootPathIndex=
 phpPath=
 redirectTargetProtocol=
 redirectTargetServerName=
+application=
 overwrite=
 source "${cosysesPath}/prepare-parameters.sh"
 
@@ -210,6 +212,10 @@ if [[ -z "${phpPath}" ]]; then
 else
   phpPath="${phpPath//\\/\\\\}"
   phpPath="${phpPath//$/\\\\$}"
+fi
+
+if [[ -z "${application}" ]]; then
+  application="no"
 fi
 
 if [[ -z "${overwrite}" ]]; then
@@ -350,6 +356,7 @@ else
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
+          --application "${application}" \
           --basicAuthUserName "${basicAuthUserName}" \
           --basicAuthPassword "${basicAuthPassword}" \
           --basicAuthUserFilePath "${basicAuthUserFilePath}" \
@@ -387,6 +394,7 @@ else
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
+          --application "${application}" \
           --append yes
       else
         if [[ -n "${redirectTargetProtocol}" ]] && [[ "${redirectTargetProtocol}" != "-" ]] && [[ -n "${redirectTargetServerName}" ]] && [[ "${redirectTargetServerName}" != "-" ]]; then
@@ -479,6 +487,7 @@ if [[ ${sslTerminated} == "no" ]]; then
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
+          --application "${application}" \
           --rootPath "${rootPath}" \
           --rootPathIndex "${rootPathIndex}" \
           --phpPath "${phpPath}" \
@@ -519,6 +528,7 @@ if [[ ${sslTerminated} == "no" ]]; then
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
+          --application "${application}" \
           --rootPath "${rootPath}" \
           --rootPathIndex "${rootPathIndex}" \
           --phpPath "${phpPath}" \
