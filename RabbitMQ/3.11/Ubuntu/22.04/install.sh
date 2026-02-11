@@ -74,6 +74,11 @@ if [[ -z "${adminUserName}" ]]; then
   adminUserName="admin"
 fi
 
+if [[ -z "${adminPassword}" ]]; then
+  adminPassword=$(echo "${RANDOM}" | md5sum | head -c 32)
+  echo "Using generated password: ${adminPassword}"
+fi
+
 install-package locales
 
 { echo "LC_ALL=en_US.UTF-8"; echo "LANG=en_US.UTF-8"; echo "LANGUAGE=en_US.UTF-8"; } >> /etc/environment
@@ -124,11 +129,6 @@ echo "[{rabbit, [{loopback_users, []}, {tcp_listeners, [{\"${bindAddress}\", ${p
 
 service rabbitmq-server restart
 
-if [[ -z "${adminPassword}" ]]; then
-  adminPassword=$(echo "${RANDOM}" | md5sum | head -c 32)
-  echo "Using generated password: ${adminPassword}"
-fi
-
 rabbitmqctl add_user "${adminUserName}" "${adminPassword}"
 rabbitmqctl set_user_tags "${adminUserName}" administrator
 rabbitmqctl set_permissions -p / "${adminUserName}" ".*" ".*" ".*"
@@ -162,7 +162,7 @@ EOF
     cat <<EOF > /usr/local/lib/start/10-rabbitmq.sh
 #!/usr/bin/env bash
 echo "Starting RabbitMQ"
-sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached" &
+sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached"
 EOF
     chmod +x /usr/local/lib/start/10-rabbitmq.sh
   fi

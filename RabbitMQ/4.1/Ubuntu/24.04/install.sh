@@ -74,6 +74,11 @@ if [[ -z "${adminUserName}" ]]; then
   adminUserName="admin"
 fi
 
+if [[ -z "${adminPassword}" ]]; then
+  adminPassword=$(echo "${RANDOM}" | md5sum | head -c 32)
+  echo "Using generated password: ${adminPassword}"
+fi
+
 install-package locales
 
 { echo "LC_ALL=en_US.UTF-8"; echo "LANG=en_US.UTF-8"; echo "LANGUAGE=en_US.UTF-8"; } >> /etc/environment
@@ -107,11 +112,6 @@ echo "Setting bind address to: ${bindAddress}, port to: ${port} and management p
 echo "[{rabbit, [{loopback_users, []}, {tcp_listeners, [{\"${bindAddress}\", ${port}}]}]}, {rabbitmq_management, [{listener, [{ip, \"${bindAddress}\"}, {port, ${managementPort}}]}]}]." > /etc/rabbitmq/rabbitmq.config
 
 service rabbitmq-server restart
-
-if [[ -z "${adminPassword}" ]]; then
-  adminPassword=$(echo "${RANDOM}" | md5sum | head -c 32)
-  echo "Using generated password: ${adminPassword}"
-fi
 
 rabbitmqctl add_user "${adminUserName}" "${adminPassword}"
 rabbitmqctl set_user_tags "${adminUserName}" administrator

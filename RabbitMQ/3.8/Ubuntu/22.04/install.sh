@@ -79,6 +79,16 @@ if [[ -z "${adminPassword}" ]]; then
   echo "Using generated password: ${adminPassword}"
 fi
 
+install-package locales
+
+{ echo "LC_ALL=en_US.UTF-8"; echo "LANG=en_US.UTF-8"; echo "LANGUAGE=en_US.UTF-8"; } >> /etc/environment
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+locale-gen en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
 add-server-key-id "hkps://keys.openpgp.org" "0x0A9AF2115F4687BD29803A206B73A36E6026DFCA"
 add-server-key-id "keyserver.ubuntu.com" "F77F1EDA57EBB1CC"
 add-gpg-repository "rabbitmq.list" "https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/" "focal" "main" "https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey" "y"
@@ -137,7 +147,7 @@ EOF
     cat <<EOF > /usr/local/lib/start/10-rabbitmq.sh
 #!/usr/bin/env bash
 echo "Starting RabbitMQ"
-sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached" &
+sudo -H -u rabbitmq bash -c "/usr/sbin/rabbitmq-server -detached"
 EOF
     chmod +x /usr/local/lib/start/10-rabbitmq.sh
   fi
