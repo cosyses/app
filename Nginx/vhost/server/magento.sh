@@ -96,9 +96,6 @@ cat <<EOF | tee -a "${configurationFile}" > /dev/null
       add_header X-Frame-Options "SAMEORIGIN";
     }
   }
-  location / {
-    try_files \$uri \$uri/ /index.php?\$args;
-  }
   location /pub/ {
     location ~ ^/pub/media/(downloadable|customer|import|theme_customization/.*\.xml) {
       deny all;
