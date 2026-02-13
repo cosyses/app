@@ -12,24 +12,25 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help            Show this message
-  --sslPort         SSL port, default: 443
-  --sslCertFile     SSL certificate file, default: /etc/ssl/certs/ssl-cert-snakeoil.pem
-  --sslKeyFile      SSL key file, default: /etc/ssl/private/ssl-cert-snakeoil.key
-  --webPath         Web path
-  --webUser         Web user, default: www-data
-  --webGroup        Web group, default: www-data
-  --logPath         Log path, default: /var/log/nginx
-  --logLevel        Log level, default: warn
-  --serverName      Server name
-  --fpmHostName     Host name of PHP FPM instance, default: localhost
-  --fpmHostPort     Port of PHP FPM instance, default: 9000
-  --fpmIndexScript  Index script of FPM server, default: index.php
-  --rootPath        Path of root, default: /
-  --rootPathIndex   Index of root path, default: /index.php
-  --phpPath         Path of PHP, default: \.php$
-  --application     Install configuration for this application (optional)
-  --append          Append to existing configuration if configuration file already exists (yes/no), default: no
+  --help              Show this message
+  --sslPort           SSL port, default: 443
+  --sslCertFile       SSL certificate file, default: /etc/ssl/certs/ssl-cert-snakeoil.pem
+  --sslKeyFile        SSL key file, default: /etc/ssl/private/ssl-cert-snakeoil.key
+  --webPath           Web path
+  --webUser           Web user, default: www-data
+  --webGroup          Web group, default: www-data
+  --logPath           Log path, default: /var/log/nginx
+  --logLevel          Log level, default: warn
+  --serverName        Server name
+  --fpmHostName       Host name of PHP FPM instance, default: localhost
+  --fpmHostPort       Port of PHP FPM instance, default: 9000
+  --fpmIndexScript    Index script of FPM server, default: index.php
+  --rootPath          Path of root, default: /
+  --rootPathIndex     Index of root path, default: /index.php
+  --rootPathFallback  Fallback of root path, default: /index.php?\$args
+  --phpPath           Path of PHP, default: \.php$
+  --application       Install configuration for this application (optional)
+  --append            Append to existing configuration if configuration file already exists (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm
 EOF
@@ -67,6 +68,7 @@ fpmHostPort=
 fpmIndexScript=
 rootPath=
 rootPathIndex=
+rootPathFallback=
 phpPath=
 application=
 append=
@@ -139,11 +141,18 @@ if [[ -z "${rootPath}" ]]; then
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
-  rootPathIndex="/index.php?\$args"
+  rootPathIndex="/index.php"
+fi
+
+if [[ -z "${rootPathFallback}" ]]; then
+  rootPathFallback="/index.php?\$args"
 fi
 
 if [[ -z "${phpPath}" ]]; then
   phpPath="\.php\$"
+else
+  phpPath="${phpPath//\\/\\\\}"
+  phpPath="${phpPath//$/\\\\$}"
 fi
 
 if [[ -z "${append}" ]]; then
@@ -192,7 +201,7 @@ server {
   ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP:!aNULL:!MD5;
   ssl_prefer_server_ciphers on;
   location ${rootPath} {
-    try_files \$uri \$uri/ ${rootPathIndex};
+    try_files \$uri \$uri/ ${rootPathFallback};
   }
 EOF
 

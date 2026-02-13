@@ -27,6 +27,7 @@ OPTIONS:
   --fpmIndexScript         Index script of FPM server, default: index.php
   --rootPath               Path of root, default: /
   --rootPathIndex          Index of root path, default: /index.php
+  --rootPathFallback       Fallback of root path, default: /index.php?\$args
   --phpPath                Path of PHP, default: \.php$
   --basicAuthUserName      Basic auth user name
   --basicAuthPassword      Basic auth password
@@ -70,6 +71,7 @@ fpmHostPort=
 fpmIndexScript=
 rootPath=
 rootPathIndex=
+rootPathFallback=
 phpPath=
 basicAuthUserName=
 basicAuthPassword=
@@ -145,7 +147,11 @@ if [[ -z "${rootPath}" ]]; then
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
-  rootPathIndex="/index.php?\$args"
+  rootPathIndex="/index.php"
+fi
+
+if [[ -z "${rootPathFallback}" ]]; then
+  rootPathFallback="/index.php?\$args"
 fi
 
 if [[ -z "${phpPath}" ]]; then
@@ -222,7 +228,7 @@ server {
   ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP:!aNULL:!MD5;
   ssl_prefer_server_ciphers on;
   location ${rootPath} {
-    try_files \$uri \$uri/ ${rootPathIndex};
+    try_files \$uri \$uri/ ${rootPathFallback};
     auth_basic "${serverName}";
     auth_basic_user_file ${basicAuthUserFile};
   }

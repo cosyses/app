@@ -36,6 +36,7 @@ OPTIONS:
   --fpmIndexScript            Index script of FPM server, default: index.php
   --rootPath                  Path of root, default: /
   --rootPathIndex             Index of root path, default: /index.php
+  --rootPathFallback          Fallback of root path, default: /index.php?\$args
   --phpPath                   Path of PHP, default: \.php$
   --redirectTargetProtocol    Protocol of redirect target, default: https
   --redirectTargetServerName  Server name of target
@@ -87,6 +88,7 @@ fpmHostPort=
 fpmIndexScript=
 rootPath=
 rootPathIndex=
+rootPathFallback=
 phpPath=
 redirectTargetProtocol=
 redirectTargetServerName=
@@ -205,6 +207,13 @@ if [[ -z "${rootPathIndex}" ]]; then
 else
   rootPathIndex="${rootPathIndex//\\/\\\\}"
   rootPathIndex="${rootPathIndex//$/\\\\$}"
+fi
+
+if [[ -z "${rootPathFallback}" ]]; then
+  rootPathFallback="/index.php?\\\$args"
+else
+  rootPathFallback="${rootPathFallback//\\/\\\\}"
+  rootPathFallback="${rootPathFallback//$/\\\\$}"
 fi
 
 if [[ -z "${phpPath}" ]]; then
@@ -356,10 +365,13 @@ else
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
-          --application "${application}" \
+          --rootPath "${rootPath}" \
+          --rootPathIndex "${rootPathIndex}" \
+          --rootPathFallback "${rootPathFallback}" \
           --basicAuthUserName "${basicAuthUserName}" \
           --basicAuthPassword "${basicAuthPassword}" \
           --basicAuthUserFilePath "${basicAuthUserFilePath}" \
+          --application "${application}" \
           --append yes
       else
         cosyses \
@@ -394,6 +406,9 @@ else
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
+          --rootPath "${rootPath}" \
+          --rootPathIndex "${rootPathIndex}" \
+          --rootPathFallback "${rootPathFallback}" \
           --application "${application}" \
           --append yes
       else
@@ -487,13 +502,14 @@ if [[ ${sslTerminated} == "no" ]]; then
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
-          --application "${application}" \
           --rootPath "${rootPath}" \
           --rootPathIndex "${rootPathIndex}" \
+          --rootPathFallback "${rootPathFallback}" \
           --phpPath "${phpPath}" \
           --basicAuthUserName "${basicAuthUserName}" \
           --basicAuthPassword "${basicAuthPassword}" \
           --basicAuthUserFilePath "${basicAuthUserFilePath}" \
+          --application "${application}" \
           --append yes
       else
         cosyses \
@@ -528,10 +544,14 @@ if [[ ${sslTerminated} == "no" ]]; then
           --fpmHostName "${fpmHostName}" \
           --fpmHostPort "${fpmHostPort}" \
           --fpmIndexScript "${fpmIndexScript}" \
-          --application "${application}" \
           --rootPath "${rootPath}" \
           --rootPathIndex "${rootPathIndex}" \
+          --rootPathFallback "${rootPathFallback}" \
+          --rootPath "${rootPath}" \
+          --rootPathIndex "${rootPathIndex}" \
+          --rootPathFallback "${rootPathFallback}" \
           --phpPath "${phpPath}" \
+          --application "${application}" \
           --append yes
       else
         if [[ -n "${redirectTargetProtocol}" ]] && [[ "${redirectTargetProtocol}" != "-" ]] && [[ -n "${redirectTargetServerName}" ]] && [[ "${redirectTargetServerName}" != "-" ]]; then

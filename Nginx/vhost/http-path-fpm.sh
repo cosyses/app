@@ -12,22 +12,23 @@ cat >&2 << EOF
 usage: ${scriptFileName} options
 
 OPTIONS:
-  --help            Show this message
-  --httpPort        HTTP port, default: 80
-  --webPath         Web path
-  --webUser         Web user, default: www-data
-  --webGroup        Web group, default: www-data
-  --logPath         Log path, default: /var/log/nginx
-  --logLevel        Log level, default: warn
-  --serverName      Server name
-  --fpmHostName     Host name of PHP FPM instance, default: localhost
-  --fpmHostPort     Port of PHP FPM instance, default: 9000
-  --fpmIndexScript  Index script of FPM server, default: index.php
-  --rootPath        Path of root, default: /
-  --rootPathIndex   Index of root path, default: /index.php
-  --phpPath         Path of PHP, default: \.php$
-  --application     Install configuration for this application (optional)
-  --append          Append to existing configuration if configuration file already exists (yes/no), default: no
+  --help              Show this message
+  --httpPort          HTTP port, default: 80
+  --webPath           Web path
+  --webUser           Web user, default: www-data
+  --webGroup          Web group, default: www-data
+  --logPath           Log path, default: /var/log/nginx
+  --logLevel          Log level, default: warn
+  --serverName        Server name
+  --fpmHostName       Host name of PHP FPM instance, default: localhost
+  --fpmHostPort       Port of PHP FPM instance, default: 9000
+  --fpmIndexScript    Index script of FPM server, default: index.php
+  --rootPath          Path of root, default: /
+  --rootPathIndex     Index of root path, default: /index.php
+  --rootPathFallback  Fallback of root path, default: /index.php?\$args
+  --phpPath           Path of PHP, default: \.php$
+  --application       Install configuration for this application (optional)
+  --append            Append to existing configuration if configuration file already exists (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm
 EOF
@@ -63,6 +64,7 @@ fpmHostPort=
 fpmIndexScript=
 rootPath=
 rootPathIndex=
+rootPathFallback=
 phpPath=
 application=
 append=
@@ -117,7 +119,11 @@ if [[ -z "${rootPath}" ]]; then
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
-  rootPathIndex="/index.php?\$args"
+  rootPathIndex="/index.php"
+fi
+
+if [[ -z "${rootPathFallback}" ]]; then
+  rootPathFallback="/index.php?\$args"
 fi
 
 if [[ -z "${phpPath}" ]]; then
@@ -163,7 +169,7 @@ server {
   index ${rootPathIndex};
   error_page 500 502 503 504 /50x.html;
   location ${rootPath} {
-    try_files \$uri \$uri/ ${rootPathIndex};
+    try_files \$uri \$uri/ ${rootPathFallback};
   }
 EOF
 
