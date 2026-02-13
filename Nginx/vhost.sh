@@ -210,7 +210,7 @@ else
 fi
 
 if [[ -z "${rootPathFallback}" ]]; then
-  rootPathFallback="/index.php?\\\$args"
+  rootPathFallback="/index.php?\\\\\$args"
 else
   rootPathFallback="${rootPathFallback//\\/\\\\}"
   rootPathFallback="${rootPathFallback//$/\\\\$}"

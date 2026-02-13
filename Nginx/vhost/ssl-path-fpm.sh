@@ -31,6 +31,7 @@ OPTIONS:
   --phpPath           Path of PHP, default: \.php$
   --application       Install configuration for this application (optional)
   --append            Append to existing configuration if configuration file already exists (yes/no), default: no
+  --overwrite         Overwrite existing files (yes/no), default: no
 
 Example: ${scriptFileName} --webPath /var/www/project01/htdocs --serverName project01.net --fpmHostName fpm
 EOF
@@ -72,6 +73,7 @@ rootPathFallback=
 phpPath=
 application=
 append=
+overwrite=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${sslPort}" ]]; then
@@ -159,6 +161,14 @@ if [[ -z "${append}" ]]; then
   append="no"
 fi
 
+if [[ -z "${overwrite}" ]]; then
+  overwrite="no"
+fi
+
+if [[ "${overwrite}" == 1 ]]; then
+  overwrite="yes"
+fi
+
 cosyses \
   --applicationName "${applicationName}" \
   --applicationVersion "${applicationVersion}" \
@@ -180,7 +190,8 @@ cosyses \
   --applicationVersion "${applicationVersion}" \
   --applicationScript "vhost/prepare/configuration-file.sh" \
   --serverName "${serverName}" \
-  --append "${append}"
+  --append "${append}" \
+  --overwrite "${overwrite}"
 
 configurationFile="/etc/nginx/conf.d/${serverName}.conf"
 
