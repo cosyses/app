@@ -75,6 +75,10 @@ add-file-content-after /etc/php/8.2/fpm/php.ini "error_log = /var/log/php/fpm.lo
 replace-file-content /etc/php/8.2/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
 replace-file-content /etc/php/8.2/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php8.2-fpm.sock"
 
+update-alternatives --set php "$(which php8.2)"
+
+chown www-data: /var/www
+
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"
   cat <<EOF > /usr/local/bin/php.sh

@@ -57,6 +57,10 @@ replace-file-content /etc/php/8.2/apache2/php.ini "max_input_vars = 100000" "; m
 replace-file-content /etc/php/8.2/apache2/php.ini "memory_limit = 4096M" "memory_limit = 128M"
 add-file-content-after /etc/php/8.2/apache2/php.ini "error_log = /var/log/php/apache.log" "error_log = syslog" 1
 
+update-alternatives --set php "$(which php8.2)"
+
+chown www-data: /var/www
+
 if [[ -f /.dockerenv ]]; then
   echo "Copy start script at: /usr/local/bin/php.sh from /usr/local/bin/apache.sh"
   cp /usr/local/bin/apache.sh /usr/local/bin/php.sh

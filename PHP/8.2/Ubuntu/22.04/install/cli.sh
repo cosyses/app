@@ -57,6 +57,8 @@ add-file-content-after /etc/php/8.2/cli/php.ini "error_log = /var/log/php/cli.lo
 
 update-alternatives --set php "$(which php8.2)"
 
+chown www-data: /var/www
+
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/php.sh"
   cat <<EOF > /usr/local/bin/php.sh

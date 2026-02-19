@@ -8,6 +8,10 @@ while [ "${1}" ]; do
   home=$(awk -F: -v u="${1}" '$1==u{print $6}' /etc/passwd)
   echo "User home at: ${home}"
 
+  if [[ ! -d "${home}" ]]; then
+    echo "Creating directory at: ${home}"
+    mkdir -p "${home}"
+  fi
   fileName=$(basename "${file}")
   echo "Using file name: ${fileName}"
 
