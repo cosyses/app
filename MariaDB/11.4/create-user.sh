@@ -91,26 +91,26 @@ export MYSQL_PWD="${databaseRootPassword}"
 
 for userName in "${userNames[@]}"; do
   echo "Adding user: ${userName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
+  mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
 
   echo "Granting all rights to user: ${userName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT ALL ON ${databaseName}.* TO ${userName} WITH GRANT OPTION;"
+  mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT ALL ON ${databaseName}.* TO ${userName} WITH GRANT OPTION;"
 
   if [[ "${grantSuperRights}" == "yes" ]]; then
     echo "Granting super rights to user: ${userName}"
-    mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT SUPER ON *.* TO ${userName};"
+    mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT SUPER ON *.* TO ${userName};"
   fi
 done
 
 echo "Flushing privileges"
-mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "FLUSH PRIVILEGES;"
+mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "FLUSH PRIVILEGES;"
 
 if [[ "${createDatabase}" == "yes" ]]; then
   export MYSQL_PWD="${databasePassword}"
 
   echo "Dropping database: ${databaseName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "DROP DATABASE IF EXISTS ${databaseName};"
+  mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "DROP DATABASE IF EXISTS ${databaseName};"
 
   echo "Creating database: ${databaseName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "CREATE DATABASE ${databaseName} CHARACTER SET utf8 COLLATE utf8_general_ci;";
+  mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "CREATE DATABASE ${databaseName} CHARACTER SET utf8 COLLATE utf8_general_ci;";
 fi

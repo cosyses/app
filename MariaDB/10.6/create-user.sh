@@ -20,7 +20,7 @@ OPTIONS:
   --grantSuperRights      Grant user super rights, default: no
   --createDatabase        Create initial database, default: no
 
-Example: ${scriptName} -u newuser -s password -b database -t mysql -v 5.7 -w secret
+Example: ${scriptName} --databaseUser newuser --databasePassword password --databaseName database --databaseRootPassword secret
 EOF
 }
 
