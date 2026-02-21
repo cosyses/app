@@ -54,7 +54,7 @@ if [[ ! -d "${configurationPath}" ]]; then
 fi
 
 echo "Creating configuration at: ${configurationPath}/mhsendmail.ini"
-echo "sendmail_path = /usr/bin/mhsendmail --smtp-addr ${host}:${port} --from ${sender}" > "${configurationPath}/mhsendmail.ini"
+echo "sendmail_path = /usr/bin/mhsendmail --smtp-addr ${host}:${port} --from ${sender} -t" > "${configurationPath}/mhsendmail.ini"
 
 if [[ -n $(which phpenmod) ]]; then
   echo "Enabling module mhsendmail"
