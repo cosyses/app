@@ -57,7 +57,7 @@ replace-file-content /etc/php/8.4/apache2/php.ini "max_input_vars = 100000" "; m
 replace-file-content /etc/php/8.4/apache2/php.ini "memory_limit = 4096M" "memory_limit = 128M"
 add-file-content-after /etc/php/8.4/apache2/php.ini "error_log = /var/log/php/apache.log" "error_log = syslog" 1
 
-update-alternatives --set php "$(which php8.3)"
+update-alternatives --set php "$(which php8.4)"
 
 chown www-data: /var/www
 
