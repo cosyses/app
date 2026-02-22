@@ -62,11 +62,8 @@ update-alternatives --set php "$(which php8.1)"
 chown www-data: /var/www
 
 if [[ -f /.dockerenv ]]; then
-  echo "Creating start script at: /usr/local/bin/php.sh"
-  cat <<EOF > /usr/local/bin/php.sh
-#!/bin/bash -e
-/usr/sbin/apache2ctl -D FOREGROUND
-EOF
+  echo "Copy start script at: /usr/local/bin/php.sh from /usr/local/bin/apache.sh"
+  cp /usr/local/bin/apache.sh /usr/local/bin/php.sh
   chmod +x /usr/local/bin/php.sh
 else
   echo "Restarting service"
