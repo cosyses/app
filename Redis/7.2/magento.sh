@@ -17,6 +17,7 @@ OPTIONS:
   --port         Port, default: 6379
   --maxMemory    Max memory in MB, default: 2048
   --save         Save (yes/no), default: yes
+  --password     Password (optional)
   --allowSync    Allow syncing (yes/no), default: no
   --syncAlias    Sync alias (reqired if allow syncing = no), default: generated
   --psyncAlias   PSync alias (reqired if allow syncing = no), default: generated
@@ -42,6 +43,7 @@ bindAddress=
 port=
 maxMemory=
 save=
+password=
 allowSync=
 syncAlias=
 psyncAlias=
@@ -160,10 +162,10 @@ save 60 10000
 EOF
 fi
 
-if [[ -n "${redisCachePassword}" ]]; then
+if [[ -n "${password}" ]]; then
   cat <<EOF | sudo tee -a "/etc/redis/redis_${port}.conf" > /dev/null
 protected-mode yes
-requirepass ${redisCachePassword}
+requirepass ${password}
 EOF
 else
   cat <<EOF | sudo tee -a "/etc/redis/redis_${port}.conf" > /dev/null
