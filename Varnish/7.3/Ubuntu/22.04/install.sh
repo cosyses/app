@@ -53,8 +53,8 @@ install-package gnupg
 install-package libssl3
 install-package libssl-dev
 install-package-from-deb libjemalloc1 3.6.0-2 https://repo.percona.com/apt/pool/main/j/jemalloc/libjemalloc1_3.6.0-2.focal_amd64.deb
-add-gpg-repository "varnish-cache-6.4.list" "https://packagecloud.io/varnishcache/varnish64/ubuntu/" "bionic" "main" "https://packagecloud.io/varnishcache/varnish64/gpgkey" "y"
-install-package varnish 6.4
+add-gpg-repository "varnish-cache-7.3.list" "https://packagecloud.io/varnishcache/varnish73/ubuntu/" "jammy" "main" "https://packagecloud.io/varnishcache/varnish73/gpgkey" "y"
+install-package varnish 7.3
 
 cp /etc/varnish/default.vcl /etc/varnish/varnish.vcl
 
