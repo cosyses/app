@@ -50,5 +50,5 @@ fi
 
 if [[ -f /.dockerenv ]]; then
   echo "Updating elasticsearch settings for indexing"
-  curl -XPUT -H "Content-Type: application/json" "http://localhost:${port}/_cluster/settings" -d '{"persistent": {"cluster.blocks.create_index": false}}'
+  curl -XPUT -H "Content-Type: application/json" "http://localhost:${port}/_cluster/settings" -d '{ "transient": { "cluster.routing.allocation.disk.threshold_enabled": false } }'
 fi
