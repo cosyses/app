@@ -98,6 +98,8 @@ ulimit -n 65535
 sysctl -w vm.max_map_count=262144
 mkdir -p /var/run/opensearch
 chown ${userName}: /var/run/opensearch/
+rm -rf /opt/opensearch/data/nodes/0/_state/write.lock
+rm -rf /opt/opensearch/data/nodes/0/node.lock
 sudo -H -u ${userName} bash -c "/opt/opensearch/bin/opensearch -p /var/run/opensearch/opensearch.pid -d" &
 tail -f /dev/null & wait \$!
 EOF
@@ -112,6 +114,8 @@ ulimit -n 65535
 sysctl -w vm.max_map_count=262144
 mkdir -p /var/run/opensearch
 chown ${userName}: /var/run/opensearch/
+rm -rf /opt/opensearch/data/nodes/0/_state/write.lock
+rm -rf /opt/opensearch/data/nodes/0/node.lock
 sudo -H -u ${userName} bash -c "/opt/opensearch/bin/opensearch -p /var/run/opensearch/opensearch.pid -d"
 EOF
     chmod +x /usr/local/lib/start/10-opensearch.sh
