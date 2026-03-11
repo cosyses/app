@@ -70,13 +70,50 @@ if [[ -f /.dockerenv ]]; then
 
   echo "Creating start script at: /usr/local/bin/elasticsearch.sh"
   cat <<EOF > /usr/local/bin/elasticsearch.sh
-#!/bin/bash -e
-mkdir -p /var/run/elasticsearch && chown elasticsearch:elasticsearch /var/run/elasticsearch
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Elasticsearch"
+  cat /var/run/elasticsearch/elasticsearch.pid | xargs kill -15
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Elasticsearch"
 ulimit -n 65535
 sysctl -w vm.max_map_count=262144
-sudo -H -u elasticsearch bash -c "/usr/share/elasticsearch/bin/elasticsearch --pidfile /var/run/elasticsearch/elasticsearch.pid"
+mkdir -p /var/run/elasticsearch/
+chown elasticsearch: /var/run/elasticsearch/
+sudo -H -u elasticsearch bash -c "/usr/share/elasticsearch/bin/elasticsearch --pidfile /var/run/elasticsearch/elasticsearch.pid --daemonize" &
+tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/elasticsearch.sh
+
+  if [[ -d /usr/local/lib/start/ ]]; then
+    echo "Creating start script at: /usr/local/lib/start/10-elasticsearch.sh"
+    cat <<EOF > /usr/local/lib/start/10-elasticsearch.sh
+#!/usr/bin/env bash
+echo "Starting Elasticsearch"
+ulimit -n 65535
+sysctl -w vm.max_map_count=262144
+mkdir -p /var/run/elasticsearch/
+chown elasticsearch: /var/run/elasticsearch/
+sudo -H -u elasticsearch bash -c "/usr/share/elasticsearch/bin/elasticsearch --pidfile /var/run/elasticsearch/elasticsearch.pid --daemonize"
+EOF
+    chmod +x /usr/local/lib/start/10-elasticsearch.sh
+  fi
+
+  if [[ -d /usr/local/lib/stop/ ]]; then
+    echo "Creating stop script at: /usr/local/lib/stop/10-elasticsearch.sh"
+    cat <<EOF > /usr/local/lib/stop/10-elasticsearch.sh
+#!/usr/bin/env bash
+echo "Stopping Elasticsearch"
+cat /var/run/elasticsearch/elasticsearch.pid | xargs kill -15 && until test ! -f /var/run/elasticsearch/elasticsearch.pid; do sleep 1; done
+EOF
+    chmod +x /usr/local/lib/stop/10-elasticsearch.sh
+  fi
 else
   echo "Restarting Elasticsearch"
   service elasticsearch restart
