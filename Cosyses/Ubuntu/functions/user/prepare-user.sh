@@ -44,21 +44,12 @@ if [[ -z "${userName}" ]]; then
   exit 1
 fi
 
+ensure-user -u "${userName}"
+
 install-package sudo
 install-package coreutils
 
 echo "Preparing user: ${userName}"
-
-if [[ $(getent passwd | cat | tr ':' ' ' | awk '{print $1}' | grep -e "^${userName}$" | wc -l) -eq 0 ]]; then
-  echo "Creating user: ${userName}"
-  if [[ $(getent group "${userName}" | wc -l) -gt 0 ]]; then
-    useradd -m -g "${userName}" -s /bin/bash "${userName}"
-  else
-    useradd -m -s /bin/bash "${userName}"
-  fi
-elif [[ "${verbose}" == 1 ]]; then
-  echo "User: ${userName} already exists"
-fi
 
 userGroup=$(id -gn "${userName}")
 userHome=$(grep "${userName}" /etc/passwd | cut -d':' -f6)
