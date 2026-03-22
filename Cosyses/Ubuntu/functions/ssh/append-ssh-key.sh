@@ -18,6 +18,7 @@ while [ "${1}" ]; do
   if [[ ! -d "${home}/.ssh" ]]; then
     echo "Creating SSH directory at: ${home}/.ssh"
     mkdir "${home}/.ssh"
+    chown "${1}": "${home}/.ssh"
     chmod 600 "${home}/.ssh"
   fi
 
