@@ -19,7 +19,7 @@ while [ "${1}" ]; do
     echo "Creating SSH directory at: ${home}/.ssh"
     mkdir "${home}/.ssh"
     chown "${1}": "${home}/.ssh"
-    chmod 600 "${home}/.ssh"
+    chmod 700 "${home}/.ssh"
   fi
 
   echo "Checking authorization file at: ${home}/.ssh/authorized_keys"

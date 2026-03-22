@@ -10,7 +10,7 @@ while [ "${1}" ]; do
   if [[ ! -d "${home}/.ssh" ]]; then
     mkdir "${home}/.ssh"
     chown "${1}": "${home}/.ssh"
-    chmod 600 "${home}/.ssh"
+    chmod 700 "${home}/.ssh"
   fi
 
   touch "${home}/.ssh/authorized_keys"
