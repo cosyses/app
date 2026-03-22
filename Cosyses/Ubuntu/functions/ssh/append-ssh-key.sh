@@ -9,15 +9,16 @@ while [ "${1}" ]; do
   echo "User home at: ${home}"
 
   if [[ ! -d "${home}" ]]; then
-    echo "Creating directory at: ${home}"
+    echo "Creating home directory at: ${home}"
     mkdir -p "${home}"
   fi
   fileName=$(basename "${file}")
   echo "Using file name: ${fileName}"
 
   if [[ ! -d "${home}/.ssh" ]]; then
-    echo "Creating directory at: ${home}/.ssh"
-    mkdir -m 700 "${home}/.ssh"
+    echo "Creating SSH directory at: ${home}/.ssh"
+    mkdir "${home}/.ssh"
+    chmod 600 "${home}/.ssh"
   fi
 
   echo "Checking authorization file at: ${home}/.ssh/authorized_keys"

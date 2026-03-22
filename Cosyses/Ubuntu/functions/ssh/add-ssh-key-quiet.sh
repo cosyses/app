@@ -8,7 +8,8 @@ while [ "${1}" ]; do
   fileName=$(basename "${file}")
 
   if [[ ! -d "${home}/.ssh" ]]; then
-    mkdir -m 700 "${home}/.ssh"
+    mkdir "${home}/.ssh"
+    chmod 600 "${home}/.ssh"
   fi
 
   touch "${home}/.ssh/authorized_keys"
