@@ -12,7 +12,7 @@ function quoteRegex()
 
 function pregQuoteRegex()
 {
-  # shellcheck disable=SC2005
+  # shellcheck disable=SC2001,SC2005
   echo "$(quoteRegex "$*")" | sed s/^-/\\\\-/g
 }
 

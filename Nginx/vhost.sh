@@ -217,7 +217,11 @@ else
 fi
 
 if [[ -z "${phpPath}" ]]; then
-  phpPath="\.php\$"
+  if [[ "${application}" == "magento" ]]; then
+    phpPath="(index|get|static|report|404|503)\.php\$"
+  else
+    phpPath="\.php\$"
+  fi
 else
   phpPath="${phpPath//\\/\\\\}"
   phpPath="${phpPath//$/\\\\$}"

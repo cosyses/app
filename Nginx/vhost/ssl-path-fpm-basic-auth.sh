@@ -156,6 +156,9 @@ fi
 
 if [[ -z "${phpPath}" ]]; then
   phpPath="\.php\$"
+else
+  phpPath="${phpPath//\\/\\\\}"
+  phpPath="${phpPath//$/\\\\$}"
 fi
 
 if [[ -z "${basicAuthUserName}" ]]; then

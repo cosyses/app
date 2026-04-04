@@ -128,6 +128,9 @@ fi
 
 if [[ -z "${phpPath}" ]]; then
   phpPath="\.php\$"
+else
+  phpPath="${phpPath//\\/\\\\}"
+  phpPath="${phpPath//$/\\\\$}"
 fi
 
 if [[ -z "${append}" ]]; then
