@@ -77,7 +77,7 @@ if [[ "${remainingMemory}" -lt 0 ]]; then
 fi
 
 if [[ ! -f /.dockerenv ]]; then
-  echo "Stopping MySQL"
+  echo "Stopping MariaDB"
   sudo service mysql stop 2>&1
 fi
 
@@ -190,6 +190,6 @@ echo "Removing file: /var/lib/mysql/ibdata1"
 sudo rm -rf /var/lib/mysql/ibdata1
 
 if [[ ! -f /.dockerenv ]]; then
-  echo "Starting MySQL"
+  echo "Starting MariaDB"
   sudo service mysql start 2>&1
 fi

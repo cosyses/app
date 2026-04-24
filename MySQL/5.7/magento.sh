@@ -77,88 +77,88 @@ if [[ "${remainingMemory}" -lt 0 ]]; then
 fi
 
 if [[ ! -f /.dockerenv ]]; then
-  echo "Stopping MariaDB"
+  echo "Stopping MySQL"
   sudo service mysql stop 2>&1
 fi
 
-echo "Creating configuration at: /etc/mysql/my.cnf"
+echo "Creating configuration at: /etc/mysql/mysql.conf.d/mysqld.cnf"
 cat <<EOF | sudo tee "/etc/mysql/my.cnf" > /dev/null
-[client]
-port = ${databasePort}
-socket = /var/run/mysqld/mysqld.sock
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mysql.conf.d/
+EOF
 
-[mysqld_safe]
-socket = /var/run/mysqld/mysqld.sock
-nice = 0
-
+echo "Creating configuration at: /etc/mysql/mysql.conf.d/mysqld.cnf"
+cat <<EOF | sudo tee "/etc/mysql/mysql.conf.d/mysqld.cnf" > /dev/null
 [mysqld]
-basedir = /usr
+back_log = 250
 bind-address = ${bindAddress}
-bulk_insert_buffer_size = 16M
-concurrent_insert = 2
-connect_timeout = 5
 datadir = /var/lib/mysql
-default_storage_engine  = InnoDB
 #expire_logs_days = 8
 innodb_buffer_pool_size = ${innodbBufferPoolSize}G
+innodb_buffer_pool_instances = ${innodbBufferPoolSize}
 innodb_file_per_table = OFF
 innodb_flush_method = O_DIRECT
-innodb_io_capacity = 400
 innodb_log_buffer_size = 320M
-innodb_log_file_size = 1G
-innodb_open_files = 400
-key_buffer_size = 32M
-lc-messages-dir = /usr/share/mysql
-#log_bin = /var/log/mysql/mariadb-bin.log
-#log_bin_index = /var/log/mysql/mariadb-bin.index
+innodb_log_file_size = 512M
+innodb_read_io_threads = 8
+innodb_write_io_threads = 8
+join_buffer_size = 16M
+key_buffer_size = 16M
+#log_bin = /var/log/mysql/mysql-bin.log
 log_error = /var/log/mysql/error.log
-log_slow_verbosity = query_plan
-log_warnings = 2
-long_query_time = 10
+log_queries_not_using_indexes = 1
 max_allowed_packet = 32M
 max_binlog_size = 500M
 max_connections = ${connections}
 max_heap_table_size = 1024M
-myisam_recover_options = BACKUP
-myisam_sort_buffer_size = 512M
-optimizer_switch = 'extended_keys=on'
+myisam-recover-options = BACKUP
+myisam_sort_buffer_size = 64M
+open_files_limit = 65535
 pid-file = /var/run/mysqld/mysqld.pid
 port = ${databasePort}
 query_cache_limit = 16M
-query_cache_size = 64M
+query_cache_size = 128M
 query_cache_type = 1
-read_buffer_size = 8M
+read_buffer_size = 2M
 read_rnd_buffer_size = 8M
 server-id = ${serverId}
-skip_external_locking
-skip_name_resolve
+skip-external-locking
+skip-name-resolve
 socket = /var/run/mysqld/mysqld.sock
 sort_buffer_size = 2M
-table_open_cache = 400
+symbolic-links = 0
+table_definition_cache = 4096
+table_open_cache = 8000
 thread_cache_size = 32
-thread_concurrency = 10
-thread_cache_size = 8
-tmpdir = /tmp
+thread_stack = 192K
 tmp_table_size = 1024M
-user = mysql
-wait_timeout = 600
+EOF
 
+echo "Creating configuration at: /etc/mysql/mysql.conf.d/mysqld_safe.cnf"
+cat <<EOF | sudo tee "/etc/mysql/mysql.conf.d/mysqld_safe.cnf" > /dev/null
+[mysqld_safe]
+nice = 0
+socket = /var/run/mysqld/mysqld.sock
+EOF
+
+echo "Creating configuration at: /etc/mysql/mysql.conf.d/mysqldump.cnf"
+cat <<EOF | sudo tee "/etc/mysql/mysql.conf.d/mysqldump.cnf" > /dev/null
 [mysqldump]
 max_allowed_packet = 2G
 quick
 quote-names
+EOF
 
-[mysql]
-
+echo "Creating configuration at: /etc/mysql/mysql.conf.d/isamchk.cnf"
+cat <<EOF | sudo tee "/etc/mysql/mysql.conf.d/isamchk.cnf" > /dev/null
 [isamchk]
 key_buffer_size = 16M
-!includedir /etc/mysql/conf.d/
 EOF
 
 echo "Removing binary logs at: /var/lib/mysql/"
 sudo find /var/lib/mysql/ -name ib_logfile* -exec sh -c "echo \"Removing file: {}\"; rm -rf {}" \;
 
 if [[ ! -f /.dockerenv ]]; then
-  echo "Starting MariaDB"
+  echo "Starting MySQL"
   sudo service mysql start 2>&1
 fi
