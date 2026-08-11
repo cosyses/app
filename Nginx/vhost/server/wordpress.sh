@@ -62,20 +62,9 @@ configurationFile="/etc/nginx/conf.d/${serverName}.conf"
 
 cat <<EOF | tee -a "${configurationFile}" > /dev/null
   # Static Files Caching
-  location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
-    expires 1y;
-    add_header Cache-Control "public, immutable";
-  }
-  # Security: Deny access to hidden files
-  location ~ /\. {
-    deny all;
-  }
-  # Security: Deny access to sensitive files
-  location ~ /(\.env|\.git|composer\.(json|lock)|package\.json) {
-   deny all;
-  }
-  location ~ /\.(?!well-known).* {
-    deny all;
+  location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+    expires max;
+    log_not_found off;
   }
   # Favicon and robots.txt
   location = /favicon.ico {
@@ -83,19 +72,8 @@ cat <<EOF | tee -a "${configurationFile}" > /dev/null
     log_not_found off;
   }
   location = /robots.txt {
+    allow all;
     access_log off;
     log_not_found off;
   }
-  # Security Headers
-  add_header X-Frame-Options "SAMEORIGIN" always;
-  add_header X-XSS-Protection "1; mode=block" always;
-  add_header X-Content-Type-Options "nosniff" always;
-  add_header Referrer-Policy "no-referrer-when-downgrade" always;
-  add_header Content-Security-Policy "default-src 'self' http: https: data: blob;" always;
-  # Gzip Compression
-  gzip on;
-  gzip_vary on;
-  gzip_min_length 1024;
-  gzip_proxied expired no-cache no-store private must-revalidate auth;
-  gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss;
 EOF
