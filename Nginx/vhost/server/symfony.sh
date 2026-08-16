@@ -80,7 +80,7 @@ cat <<EOF | tee -a "${configurationFile}" > /dev/null
   add_header X-XSS-Protection "1; mode=block" always;
   add_header X-Content-Type-Options "nosniff" always;
   add_header Referrer-Policy "no-referrer-when-downgrade" always;
-  add_header Content-Security-Policy "default-src 'self' http: https: data: blob;" always;
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: ; style-src 'self' fonts.googleapis.com 'unsafe-inline' 'unsafe-eval'; font-src 'self' fonts.googleapis.com fonts.gstatic.com; child-src 'none'; object-src 'self'; connect-src 'self'";
   # Gzip Compression
   gzip on;
   gzip_disable "msie6";
