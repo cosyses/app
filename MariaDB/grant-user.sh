@@ -10,15 +10,15 @@ usage: ${scriptName} options
 
 OPTIONS:
   --help                  Show this message
+  --databaseRootUser      Root user, default: root
+  --databaseRootPassword  Root password
   --databaseHost          Database host, default: 127.0.0.1
   --databasePort          Database port, default: 3306
   --databaseUser          Name of the database user to create
   --databasePassword      Database password of the user to create
   --databaseName          Database name to grant the user rights to (required if create database or grant database)
-  --databaseRootUser      Root user, default: root
-  --databaseRootPassword  Root password
 
-Example: ${scriptName} --databaseUser newuser --databasePassword password --databaseName database --databaseRootPassword secret --createDatabase yes
+Example: ${scriptName} --databaseRootPassword secret --databaseUser newuser --databasePassword password --databaseName database
 EOF
 }
 
@@ -83,9 +83,9 @@ userNames=( "'${databaseUser}'@'%'" "'${databaseUser}'@'127.0.0.1'" "'${database
 export MYSQL_PWD="${databaseRootPassword}"
 
 for userName in "${userNames[@]}"; do
-  echo "Granting super rights to user: ${userName}"
-  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT SUPER ON *.* TO ${userName};"
+  echo "Granting all rights to database: ${databaseName} to user: ${userName}"
+  mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "GRANT ALL ON ${databaseName}.* TO ${userName} WITH GRANT OPTION;"
 done
 
 echo "Flushing privileges"
-mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "FLUSH PRIVILEGES;"
+mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "FLUSH PRIVILEGES;"

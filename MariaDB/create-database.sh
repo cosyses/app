@@ -12,11 +12,11 @@ OPTIONS:
   --help                  Show this message
   --databaseHost          Database host, default: 127.0.0.1
   --databasePort          Database port, default: 3306
-  --databaseUser          Name of the database user to create
-  --databasePassword      Database password of the user to create
+  --databaseUser          Name of the database user to use for creation
+  --databasePassword      Database password of the user to use for creation
   --databaseName          Database name to grant the user rights to
 
-Example: ${scriptName} --databaseUser newuser --databasePassword password --databaseName database
+Example: ${scriptName} --databaseUser user --databasePassword password --databaseName database
 EOF
 }
 
@@ -62,7 +62,7 @@ fi
 export MYSQL_PWD="${databasePassword}"
 
 echo "Dropping database: ${databaseName}"
-mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "DROP DATABASE IF EXISTS ${databaseName};"
+mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "DROP DATABASE IF EXISTS ${databaseName};"
 
 echo "Creating database: ${databaseName}"
-mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "CREATE DATABASE ${databaseName} CHARACTER SET utf8 COLLATE utf8_general_ci;";
+mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "CREATE DATABASE ${databaseName} CHARACTER SET utf8 COLLATE utf8_general_ci;";
