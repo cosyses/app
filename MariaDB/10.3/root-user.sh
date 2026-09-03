@@ -47,7 +47,7 @@ if [[ -z "${databaseRootPassword}" ]]; then
 fi
 
 echo "Setting root password"
-mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e 'use mysql;' >/dev/null 2>&1 && mysqladmin -h"${databaseRootHost}" -P"${databaseRootPort}" -u root password "${databaseRootPassword}" >/dev/null 2>&1
+mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e 'use mysql;' >/dev/null 2>&1 && mysqladmin -h"${databaseRootHost}" -P"${databaseRootPort}" -u root password "${databaseRootPassword}" >/dev/null 2>&1
 
 export MYSQL_PWD="${databaseRootPassword}"
 
@@ -56,15 +56,15 @@ rootUserNames=( "'root'@'localhost'" "'root'@'127.0.0.1'" "'root'@'%'" )
 for rootUserName in "${rootUserNames[@]}"; do
   if [[ "${rootUserName}" != "'root'@'localhost'" ]]; then
     echo "Create user: ${rootUserName}"
-    mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "CREATE USER ${rootUserName} IDENTIFIED BY '${databaseRootPassword}';";
+    mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "CREATE USER ${rootUserName} IDENTIFIED BY '${databaseRootPassword}';";
   fi
 
   echo "Granting super rights to user: ${rootUserName}"
-  mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT USAGE ON *.* TO ${rootUserName};";
+  mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT USAGE ON *.* TO ${rootUserName};";
 
   echo "Granting all privileges to user: ${rootUserName}"
-  mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT ALL PRIVILEGES ON *.* TO ${rootUserName} WITH GRANT OPTION;"
+  mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT ALL PRIVILEGES ON *.* TO ${rootUserName} WITH GRANT OPTION;"
 done
 
 echo "Flushing privileges"
-mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "FLUSH PRIVILEGES;"
+mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "FLUSH PRIVILEGES;"

@@ -103,7 +103,7 @@ collation-server = utf8mb4_general_ci
 concurrent_insert = 2
 connect_timeout = 5
 datadir = /var/lib/mysql
-default_storage_engine  = InnoDB
+default_storage_engine = InnoDB
 #expire_logs_days = 8
 general_log = 1
 general_log_file = /var/log/mysql/mysql.log
@@ -186,6 +186,8 @@ EOF
 
 echo "Removing binary logs at: /var/lib/mysql/"
 sudo find /var/lib/mysql/ -name ib_logfile* -exec sh -c "echo \"Removing file: {}\"; rm -rf {}" \;
+echo "Removing file: /var/lib/mysql/ibdata1"
+sudo rm -rf /var/lib/mysql/ibdata1
 
 if [[ ! -f /.dockerenv ]]; then
   echo "Starting MariaDB"

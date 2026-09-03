@@ -50,25 +50,25 @@ if [[ -z "${databasePort}" ]]; then
 fi
 
 if [[ -z "${databaseUser}" ]]; then
-  echo "No database user specified!"
+  >&2 echo "No database user specified!"
   usage
   exit 1
 fi
 
 if [[ -z "${databasePassword}" ]]; then
-  echo "No database password specified!"
+  >&2 echo "No database password specified!"
   usage
   exit 1
 fi
 
 if [[ -z "${databaseName}" ]]; then
-  echo "No database name specified!"
+  >&2 echo "No database name specified!"
   usage
   exit 1
 fi
 
 if [[ -z "${importFile}" ]]; then
-  echo "No import file specified!"
+  >&2 echo "No import file specified!"
   usage
   exit 1
 fi
@@ -80,9 +80,6 @@ fi
 if [[ -z "${tempDir}" ]]; then
   tempDir="/tmp/mariadb"
 fi
-
-install-package tar
-install-package unzip
 
 if [[ ! -d "${tempDir}" ]]; then
   rm -rf "${tempDir}"
@@ -106,10 +103,13 @@ fi
 
 echo "Preparing import file at: ${tempDir}/import.sql"
 if [[ "${tempImportFile: -7}" == ".tar.gz" ]]; then
+  install-package tar
   tar -xOzf "${tempImportFile}" | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | sed -e '/^CREATE\sDATABASE/d' | sed -e '/^DROP\sDATABASE/d' | sed -e '/^USE\s/d' | sed -e '/^ALTER\sDATABASE/d' | sed -e 's/ROW_FORMAT=FIXED//g' > "${tempDir}/import.sql"
-elif [[ "${tempImportFile: -7}" == ".sql.gz" ]]; then
+elif [[ "${tempImportFile: -3}" == ".gz" ]] || [[ "${tempImportFile: -7}" == ".sql.gz" ]]; then
+  install-package gzip
   cat "${tempImportFile}" | gzip -d -q | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | sed -e '/^CREATE\sDATABASE/d' | sed -e '/^DROP\sDATABASE/d' | sed -e '/^USE\s/d' | sed -e '/^ALTER\sDATABASE/d' | sed -e 's/ROW_FORMAT=FIXED//g' > "${tempDir}/import.sql"
 elif [[ "${tempImportFile: -4}" == ".zip" ]]; then
+  install-package unzip
   unzip -p "${tempImportFile}" | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | sed -e '/^CREATE\sDATABASE/d' | sed -e '/^DROP\sDATABASE/d' | sed -e '/^USE\s/d' | sed -e '/^ALTER\sDATABASE/d' | sed -e 's/ROW_FORMAT=FIXED//g' > "${tempDir}/import.sql"
 elif [[ "${tempImportFile: -4}" == ".sql" ]]; then
   cat "${tempImportFile}" | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | sed -e '/^CREATE\sDATABASE/d' | sed -e '/^DROP\sDATABASE/d' | sed -e '/^USE\s/d' | sed -e '/^ALTER\sDATABASE/d' | sed -e 's/ROW_FORMAT=FIXED//g' > "${tempDir}/import.sql"
