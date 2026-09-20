@@ -24,7 +24,7 @@ if [[ -z "${cosysesPath}" ]]; then
   exit 1
 fi
 
-pip=$(which pip)
+pip=$(which pip | cat)
 
 if [[ -z "${pip}" ]]; then
   install-package python3-pip

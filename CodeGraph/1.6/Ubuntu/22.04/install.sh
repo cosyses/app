@@ -24,7 +24,7 @@ if [[ -z "${cosysesPath}" ]]; then
   exit 1
 fi
 
-npm=$(which npm)
+npm=$(which npm | cat)
 
 if [[ -z "${npm}" ]]; then
   cosyses Node.js
