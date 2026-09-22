@@ -28,6 +28,7 @@ install-package "php${phpVersion}-gd"
 install-package "php${phpVersion}-intl"
 install-package "php${phpVersion}-mbstring"
 install-package "php${phpVersion}-mysql"
+install-package "php${phpVersion}-xml"
 install-package "php${phpVersion}-zip"
 
 if [[ ! -f /.dockerenv ]]; then
