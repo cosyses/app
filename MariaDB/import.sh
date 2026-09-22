@@ -92,13 +92,17 @@ if [[ -z "${removeFile}" ]]; then
   removeFile="no"
 fi
 
-tempImportFile="${tempDir}"/$(basename "${importFile}")
+importFileName=$(basename "${importFile}")
+
+tempImportFile="${tempDir}/${importFileName}"
 
 copied=0
 if [[ "${importFile}" != "${tempImportFile}" ]]; then
   echo "Copying import file from: ${importFile} to: ${tempImportFile}"
   cp "${importFile}" "${tempImportFile}"
-  copied=1
+  if [[ "${importFileName}" != "import.sql" ]]; then
+    copied=1
+  fi
 fi
 
 echo "Preparing import file at: ${tempDir}/import.sql"
@@ -113,7 +117,6 @@ elif [[ "${tempImportFile: -4}" == ".zip" ]]; then
   unzip -p "${tempImportFile}" | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | sed -e '/^CREATE\sDATABASE/d' | sed -e '/^DROP\sDATABASE/d' | sed -e '/^USE\s/d' | sed -e '/^ALTER\sDATABASE/d' | sed -e 's/ROW_FORMAT=FIXED//g' > "${tempDir}/import.sql"
 elif [[ "${tempImportFile: -4}" == ".sql" ]]; then
   cat "${tempImportFile}" | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | sed -e '/^CREATE\sDATABASE/d' | sed -e '/^DROP\sDATABASE/d' | sed -e '/^USE\s/d' | sed -e '/^ALTER\sDATABASE/d' | sed -e 's/ROW_FORMAT=FIXED//g' > "${tempDir}/import.sql"
-  copied=0
 else
   echo "Unsupported file format"
   exit 1
