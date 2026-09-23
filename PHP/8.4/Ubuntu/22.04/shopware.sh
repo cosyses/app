@@ -31,6 +31,11 @@ install-package "php${phpVersion}-mysql"
 install-package "php${phpVersion}-xml"
 install-package "php${phpVersion}-zip"
 
+cosyses \
+  --applicationName "${applicationName}" \
+  --applicationVersion "${applicationVersion}" \
+  --applicationScript module/redis.sh
+
 if [[ ! -f /.dockerenv ]]; then
   if [[ $(get-installed-package-version apache2 | wc -l) -gt 0 ]]; then
     service apache2 restart
