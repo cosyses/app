@@ -53,6 +53,12 @@ sysctl -w vm.max_map_count=262144
 echo "Setting bind address to: ${bindAddress}"
 replace-file-content /etc/elasticsearch/elasticsearch.yml "network.host: ${bindAddress}" "#network.host: 192.168.0.1" 0
 
+if [[ "${bindAddress}" == "0.0.0.0" ]]; then
+  echo "Enabling single node"
+  add-file-content-after /etc/elasticsearch/elasticsearch.yml "discovery.type: single-node" "#discovery.seed_hosts: [\"host1\", \"host2\"]" 1
+  replace-file-content /etc/elasticsearch/elasticsearch.yml "#cluster.initial_master_nodes:" "cluster.initial_master_nodes:" 0
+fi
+
 echo "Setting port to: ${port}"
 replace-file-content /etc/elasticsearch/elasticsearch.yml "http.port: ${port}" "#http.port: 9200" 0
 
