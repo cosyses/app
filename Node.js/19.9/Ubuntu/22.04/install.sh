@@ -18,9 +18,18 @@ Example: ${scriptFileName}
 EOF
 }
 
-add-gpg-repository nodejs.list https://deb.nodesource.com/node_19.x jammy main https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+install-package build-essential
 
-install-package nodejs 19.9
+mkdir -p /tmp/node.js
+cd /tmp/node.js
+wget -q https://nodejs.org/dist/v19.9.0/node-v19.9.0.tar.gz
+tar xfz node-v19.9.0.tar.gz
+cd node-v19.9.0
+./configure
+make
+make install
+cd /
+rm -rf /tmp/node.js
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/nodejs.sh"
