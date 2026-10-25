@@ -1,5 +1,12 @@
 #!/bin/bash -e
 
+# Set by the version specific install.sh which sources this script
+if [[ -z "${phpVersion}" ]]; then
+  >&2 echo "No PHP version set!"
+  echo ""
+  exit 1
+fi
+
 scriptFileName="${BASH_SOURCE[0]}"
 if [[ -L "${scriptFileName}" ]] && [[ -x "$(command -v readlink)" ]]; then
   scriptFileName=$(readlink -f "${scriptFileName}")
@@ -51,31 +58,30 @@ if [[ -z "${port}" ]]; then
   port="3000"
 fi
 
-phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
-if [[ -z "${phpVersion}" ]]; then
+if [[ -z "$(command -v "php${phpVersion}")" ]]; then
   cosyses \
     --applicationName "${applicationName}" \
     --applicationVersion "${applicationVersion}" \
     --type cli
 fi
 
-install-package php8.1-fpm
+install-package "php${phpVersion}-fpm"
 
 echo "Stopping service"
-service php8.1-fpm stop
+service "php${phpVersion}-fpm" stop
 
-replace-file-content /etc/php/8.1/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php8.1-fpm.log"
+replace-file-content /etc/php/${phpVersion}/fpm/php-fpm.conf "error_log = /var/log/php/fpm.log" "error_log = /var/log/php${phpVersion}-fpm.log"
 
-replace-file-content /etc/php/8.1/fpm/php.ini "max_execution_time = 3600" "max_execution_time = 30"
-replace-file-content /etc/php/8.1/fpm/php.ini "max_input_time = 3600" "max_input_time = 60"
-replace-file-content /etc/php/8.1/fpm/php.ini "max_input_vars = 100000" "; max_input_vars = 1000"
-replace-file-content /etc/php/8.1/fpm/php.ini "memory_limit = 4096M" "memory_limit = 128M"
-add-file-content-after /etc/php/8.1/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
+replace-file-content /etc/php/${phpVersion}/fpm/php.ini "max_execution_time = 3600" "max_execution_time = 30"
+replace-file-content /etc/php/${phpVersion}/fpm/php.ini "max_input_time = 3600" "max_input_time = 60"
+replace-file-content /etc/php/${phpVersion}/fpm/php.ini "max_input_vars = 100000" "; max_input_vars = 1000"
+replace-file-content /etc/php/${phpVersion}/fpm/php.ini "memory_limit = 4096M" "memory_limit = 128M"
+add-file-content-after /etc/php/${phpVersion}/fpm/php.ini "error_log = /var/log/php/fpm.log" "error_log = syslog" 1
 
-replace-file-content /etc/php/8.1/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
-replace-file-content /etc/php/8.1/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php8.1-fpm.sock"
+replace-file-content /etc/php/${phpVersion}/fpm/pool.d/www.conf "request_terminate_timeout = 3600" ";request_terminate_timeout = 0"
+replace-file-content /etc/php/${phpVersion}/fpm/pool.d/www.conf "listen = ${bindAddress}:${port}" "listen = /run/php/php${phpVersion}-fpm.sock"
 
-update-alternatives --set php "$(which php8.1)"
+update-alternatives --set php "$(which php${phpVersion})"
 
 chown www-data: /var/www
 
@@ -86,7 +92,7 @@ if [[ -f /.dockerenv ]]; then
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
   echo "Stopping PHP FPM"
-  cat /run/php/php8.1-fpm.pid | xargs kill -15 && until test ! -f /run/php/php8.1-fpm.pid; do sleep 1; done
+  cat /run/php/php${phpVersion}-fpm.pid | xargs kill -15 && until test ! -f /run/php/php${phpVersion}-fpm.pid; do sleep 1; done
   exit
 }
 for command in "\$@"; do
@@ -95,7 +101,7 @@ for command in "\$@"; do
 done
 echo "Starting PHP FPM"
 mkdir -p /run/php
-/usr/sbin/php-fpm8.1 --fpm-config /etc/php/8.1/fpm/php-fpm.conf
+/usr/sbin/php-fpm${phpVersion} --fpm-config /etc/php/${phpVersion}/fpm/php-fpm.conf
 tail -f /dev/null & wait \$!
 EOF
   chmod +x /usr/local/bin/php.sh
@@ -106,7 +112,7 @@ EOF
 #!/usr/bin/env bash
 echo "Starting PHP FPM"
 mkdir -p /run/php
-/usr/sbin/php-fpm8.1 --fpm-config /etc/php/8.1/fpm/php-fpm.conf
+/usr/sbin/php-fpm${phpVersion} --fpm-config /etc/php/${phpVersion}/fpm/php-fpm.conf
 EOF
     chmod +x /usr/local/lib/start/10-php.sh
   fi
@@ -116,14 +122,14 @@ EOF
     cat <<EOF > /usr/local/lib/stop/10-php.sh
 #!/usr/bin/env bash
 echo "Stopping PHP FPM"
-cat /run/php/php8.1-fpm.pid | xargs kill -15 && until test ! -f /run/php/php8.1-fpm.pid; do sleep 1; done
+cat /run/php/php${phpVersion}-fpm.pid | xargs kill -15 && until test ! -f /run/php/php${phpVersion}-fpm.pid; do sleep 1; done
 EOF
     chmod +x /usr/local/lib/stop/10-php.sh
   fi
 else
   echo "Starting service"
-  service php8.1-fpm start
+  service "php${phpVersion}-fpm" start
 
   echo "Enabling autostart"
-  systemctl enable php8.1-fpm --now
+  systemctl enable "php${phpVersion}-fpm" --now
 fi

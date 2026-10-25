@@ -15,11 +15,21 @@ fi
 echo "Checking curl"
 test ! -e /usr/local/include/curl && ln -s /usr/include/x86_64-linux-gnu/curl /usr/local/include/curl || echo "Successful"
 
-install-package php8.4-curl
-install-package php8.4-mbstring
-install-package php8.4-mysql
-install-package php8.4-sqlite3
-install-package php8.4-xml
+phpVersion="${applicationVersion}"
+if [[ -z "$(command -v "php${phpVersion}")" ]]; then
+  cosyses \
+    --applicationName "${applicationName}" \
+    --applicationVersion "${applicationVersion}" \
+    --type cli
+fi
+
+install-package "php${phpVersion}-curl"
+install-package "php${phpVersion}-mbstring"
+install-package "php${phpVersion}-intl"
+install-package "php${phpVersion}-mysql"
+install-package "php${phpVersion}-sqlite3"
+install-package "php${phpVersion}-xml"
+install-package "php${phpVersion}-zip"
 
 cosyses \
   --applicationName "${applicationName}" \

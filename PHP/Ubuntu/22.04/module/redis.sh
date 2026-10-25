@@ -12,14 +12,16 @@ if [[ -z "${applicationVersion}" ]]; then
   exit 1
 fi
 
-phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
-if [[ -z "${phpVersion}" ]]; then
+phpVersion="${applicationVersion}"
+if [[ -z "$(command -v "php${phpVersion}")" ]]; then
   cosyses \
     --applicationName "${applicationName}" \
     --applicationVersion "${applicationVersion}" \
     --type cli
-elif [[ -n "$(php -m | grep -e ^mcrypt\$ | cat)" ]]; then
-  echo "PHP module mcrypt already installed"
+fi
+
+if [[ -n "$("php${phpVersion}" -m | grep -e ^redis\$ | cat)" ]]; then
+  echo "PHP module redis already installed"
   exit 0
 fi
 
@@ -27,15 +29,18 @@ install-package build-essential
 install-package "php${phpVersion}-dev"
 install-package php-pear 1:1.10
 
-install-package libmcrypt-dev
-install-pecl-package "mcrypt" 1.0.6
+if [[ "${phpVersion%%.*}" -lt 8 ]]; then
+  echo "no" | install-pecl-package "redis" 5.3.7
+else
+  echo "no" | install-pecl-package "redis" 6.2.0
+fi
 
-echo "Creating configuration at: /etc/php/${phpVersion}/mods-available/mcrypt.ini"
-echo "extension=mcrypt.so" > "/etc/php/${phpVersion}/mods-available/mcrypt.ini"
+echo "Creating configuration at: /etc/php/${phpVersion}/mods-available/redis.ini"
+echo "extension=redis.so" > "/etc/php/${phpVersion}/mods-available/redis.ini"
 
 if [[ -n $(which phpenmod) ]]; then
-  echo "Enabling module mcrypt"
-  phpenmod mcrypt
+  echo "Enabling module redis"
+  phpenmod redis
 fi
 
 if [[ ! -f /.dockerenv ]]; then
