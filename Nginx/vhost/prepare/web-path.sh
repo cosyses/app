@@ -15,7 +15,7 @@ OPTIONS:
   --help     Show this message
   --webPath  Web path
   --webUser  Web user, default: www-data
-  --webUser  Web group, default: www-data
+  --webGroup Web group, default: www-data
 
 Example: ${scriptFileName} --webPath /var/www/project/htdocs
 EOF
