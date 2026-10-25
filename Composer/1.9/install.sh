@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
-install-package curl
+composerVersion="1.9.3"
+composerPhpCurl=0
 
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version 1.9.3
+source "${cosysesPath}/Composer/install-base.sh"

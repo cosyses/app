@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
-install-package curl
+composerVersion="1.10.26"
+composerPhpCurl=0
 
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version 1.10.26
+source "${cosysesPath}/Composer/install-base.sh"
