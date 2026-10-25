@@ -29,7 +29,9 @@ install-package build-essential
 install-package "php${phpVersion}-dev"
 install-package php-pear 1:1.10
 
-if [[ "${phpVersion%%.*}" -lt 8 ]]; then
+if [[ "${phpVersion%%.*}" -lt 7 ]]; then
+  echo "no" | install-pecl-package "redis" 4.3.0
+elif [[ "${phpVersion%%.*}" -lt 8 ]]; then
   echo "no" | install-pecl-package "redis" 5.3.7
 else
   echo "no" | install-pecl-package "redis" 6.2.0

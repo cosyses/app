@@ -32,7 +32,9 @@ install-package php-pear 1:1.10
 install-package tar
 install-package wget
 
-if [[ "${phpVersion%%.*}" -lt 8 ]]; then
+if [[ "${phpVersion%%.*}" -lt 7 ]]; then
+  solrVersion="2.4.0"
+elif [[ "${phpVersion%%.*}" -lt 8 ]]; then
   solrVersion="2.6.0"
 else
   solrVersion="2.8.1"
