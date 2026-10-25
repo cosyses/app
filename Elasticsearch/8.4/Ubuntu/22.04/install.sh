@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-currentPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 scriptName="${0##*/}"
 
 usage()
@@ -23,7 +22,7 @@ EOF
 helpRequested=
 bindAddress=
 port=
-source "${currentPath}/../../../../prepare-parameters.sh"
+source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ "${helpRequested}" == 1 ]]; then
   usage
