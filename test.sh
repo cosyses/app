@@ -24,11 +24,14 @@ OPTIONS:
   --image <name>     Image name, default: cosyses/ubuntu
   --logPath <path>   Path of the log files, default: ${TMPDIR:-/tmp}/cosyses-test
   --prepare <cmd>    Install a dependency first, e.g. "PHP 8.4", can be used multiple times
+  --start            Run the start scripts the prepare commands created in /usr/local/lib/start before the script
+  --waitPort <port>  With --start, wait up to 300 seconds until this local port accepts connections
   --shell            Open a shell in the container after the script finished (single run only)
 
 Example: ${scriptFileName} Varnish 7.7 22.04
 Example: ${scriptFileName} Tini 0.19
 Example: ${scriptFileName} --prepare "PHP 8.4" Composer 2.9 22.04
+Example: ${scriptFileName} --prepare "Elasticsearch 8.4" --start --waitPort 9200 --script magento.sh Elasticsearch 8.4 22.04
 Example: ${scriptFileName} --script vhost.sh Nginx 1.29 22.04 -- --serverName test.local --webPath /var/www/htdocs
 EOF
 }
@@ -40,6 +43,8 @@ image="cosyses/ubuntu"
 logPath="${TMPDIR:-/tmp}/cosyses-test"
 shell=0
 prepareCommands=( )
+start=0
+waitPort=
 positionalParameters=( )
 scriptParameters=( )
 
@@ -52,6 +57,8 @@ while [[ "$#" -gt 0 ]]; do
     --image) image="${2}"; shift 2 ;;
     --logPath) logPath="${2}"; shift 2 ;;
     --prepare) prepareCommands+=( "${2}" ); shift 2 ;;
+    --start) start=1; shift ;;
+    --waitPort) waitPort="${2}"; shift 2 ;;
     --shell) shell=1; shift ;;
     --) shift; scriptParameters=( "$@" ); break ;;
     -*) >&2 echo "Unknown option: ${1}"; usage; exit 1 ;;
@@ -121,6 +128,11 @@ for version in "${applicationVersions[@]}"; do
   done
 done
 
+if [[ -n "${waitPort}" ]] && [[ "${start}" != 1 ]]; then
+  >&2 echo "Option --waitPort requires --start"
+  exit 1
+fi
+
 if [[ "${shell}" == 1 ]] && [[ "${#combinations[@]}" -gt 1 ]]; then
   >&2 echo "Option --shell requires a single version and release"
   exit 1
@@ -173,7 +185,34 @@ set -e
 ln -sfn /usr/local/lib/cosyses/local /usr/local/lib/cosyses/current
 update-packages
 cosyses --applicationName Cosyses --applicationScript functions.sh
+imageStartScripts=\$(ls /usr/local/lib/start)
 $(for prepareCommand in "${prepareCommands[@]}"; do echo "cosyses ${prepareCommand}"; done)
+EOF
+)
+  # Start the services the prepare commands installed, the image's own start scripts (update, ssh) are skipped
+  if [[ "${start}" == 1 ]]; then
+    containerScript+=$'\n'$(cat << EOF
+for startScript in \$(ls /usr/local/lib/start | grep '\\.sh\$'); do
+  if ! grep -qxF "\${startScript}" <<< "\${imageStartScripts}"; then
+    echo "=== Running start script: \${startScript}"
+    bash "/usr/local/lib/start/\${startScript}"
+  fi
+done
+EOF
+)
+  fi
+  if [[ -n "${waitPort}" ]]; then
+    containerScript+=$'\n'$(cat << EOF
+echo "=== Waiting for port: ${waitPort}"
+for i in \$(seq 1 300); do
+  if (echo > /dev/tcp/127.0.0.1/${waitPort}) 2>/dev/null; then break; fi
+  if [[ "\${i}" == 300 ]]; then echo "Port ${waitPort} not available"; exit 1; fi
+  sleep 1
+done
+EOF
+)
+  fi
+  containerScript+=$'\n'$(cat << EOF
 $(printf '%q ' "${cosysesCommand[@]}")
 EOF
 )
