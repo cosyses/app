@@ -36,6 +36,21 @@ source "${cosysesPath}/prepare-parameters.sh"
 distribution=$(lsb_release -i | awk '{print $3}')
 release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
 
+# A script is available if it exists and, if a releases file is next to it, the current release is listed there
+scriptAvailable()
+{
+  local scriptPath="${1}"
+  local releasesFile
+  releasesFile="$(dirname "${scriptPath}")/releases"
+  if [[ ! -f "${scriptPath}" ]]; then
+    return 1
+  fi
+  if [[ -f "${releasesFile}" ]] && ! grep -qxF "${release}" "${releasesFile}"; then
+    return 1
+  fi
+  return 0
+}
+
 if [[ -z "${applicationName}" ]] && [[ -z "${applicationVersion}" ]] && [[ -z "${applicationScript}" ]]; then
   if [[ -n "${1}" ]] && [[ "${1}" == "list" ]]; then
     cd "${cosysesPath}"
@@ -46,12 +61,12 @@ if [[ -z "${applicationName}" ]] && [[ -z "${applicationVersion}" ]] && [[ -z "$
         cd "${cosysesPath}/${applicationName}"
         applicationVersions=( $(find . -mindepth 1 -maxdepth 1 -type d ! -name .idea ! -name .git | cut -c 3- | sort -n) )
         for applicationVersion in "${applicationVersions[@]}"; do
-          if [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/install.sh" ]] ||
-            [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/install.sh" ]] ||
-            [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/install.sh" ]] ||
-            [[ -f "${cosysesPath}/${applicationName}/${distribution}/${release}/install.sh" ]] ||
-            [[ -f "${cosysesPath}/${applicationName}/${distribution}/install.sh" ]] ||
-            [[ -f "${cosysesPath}/${applicationName}/install.sh" ]]; then
+          if scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/install.sh" ||
+            scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/install.sh" ||
+            scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/install.sh" ||
+            scriptAvailable "${cosysesPath}/${applicationName}/${distribution}/${release}/install.sh" ||
+            scriptAvailable "${cosysesPath}/${applicationName}/${distribution}/install.sh" ||
+            scriptAvailable "${cosysesPath}/${applicationName}/install.sh"; then
             applicationAvailable=1
           fi
         done
@@ -64,12 +79,12 @@ if [[ -z "${applicationName}" ]] && [[ -z "${applicationVersion}" ]] && [[ -z "$
       cd "${cosysesPath}/${applicationName}"
       applicationVersions=( $(find . -mindepth 1 -maxdepth 1 -type d ! -name .idea ! -name .git | cut -c 3- | sort -n) )
       for applicationVersion in "${applicationVersions[@]}"; do
-        if [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/install.sh" ]] ||
-          [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/install.sh" ]] ||
-          [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/install.sh" ]] ||
-          [[ -f "${cosysesPath}/${applicationName}/${distribution}/${release}/install.sh" ]] ||
-          [[ -f "${cosysesPath}/${applicationName}/${distribution}/install.sh" ]] ||
-          [[ -f "${cosysesPath}/${applicationName}/install.sh" ]]; then
+        if scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/install.sh" ||
+          scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/install.sh" ||
+          scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/install.sh" ||
+          scriptAvailable "${cosysesPath}/${applicationName}/${distribution}/${release}/install.sh" ||
+          scriptAvailable "${cosysesPath}/${applicationName}/${distribution}/install.sh" ||
+          scriptAvailable "${cosysesPath}/${applicationName}/install.sh"; then
           echo "${applicationVersion}"
         fi
       done
@@ -109,30 +124,30 @@ if [[ "${helpRequested}" == 0 ]]; then
   fi
 fi
 
-if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
+if [[ -n "${applicationVersion}" ]] && scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}"; then
   applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"
-elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" ]]; then
+elif [[ -n "${applicationVersion}" ]] && scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}"; then
   applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}"
-elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" ]]; then
+elif [[ -n "${applicationVersion}" ]] && scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}"; then
   applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}"
-elif [[ -f "${cosysesPath}/${applicationName}/${distribution}/${release}/${applicationScript}" ]]; then
+elif scriptAvailable "${cosysesPath}/${applicationName}/${distribution}/${release}/${applicationScript}"; then
   applicationScriptPath="${cosysesPath}/${applicationName}/${distribution}/${release}"
-elif [[ -f "${cosysesPath}/${applicationName}/${distribution}/${applicationScript}" ]]; then
+elif scriptAvailable "${cosysesPath}/${applicationName}/${distribution}/${applicationScript}"; then
   applicationScriptPath="${cosysesPath}/${applicationName}/${distribution}"
-elif [[ -f "${cosysesPath}/${applicationName}/${applicationScript}" ]]; then
+elif scriptAvailable "${cosysesPath}/${applicationName}/${applicationScript}"; then
   applicationScriptPath="${cosysesPath}/${applicationName}"
 elif [[ -z "${applicationVersion}" ]]; then
   applicationScriptPath=
   if [[ -d "${cosysesPath}/${applicationName}" ]]; then
     applicationVersions=( $(find "${cosysesPath}/${applicationName}"/* -mindepth 0 -maxdepth 0 -type d -exec basename {} \; | sort --version-sort -r ) )
     for applicationVersion in "${applicationVersions[@]}"; do
-      if [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}" ]]; then
+      if [[ -n "${applicationVersion}" ]] && scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}/${applicationScript}"; then
         applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${release}"
         break
-      elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}" ]]; then
+      elif [[ -n "${applicationVersion}" ]] && scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}/${applicationScript}"; then
         applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}/${distribution}"
         break
-      elif [[ -n "${applicationVersion}" ]] && [[ -f "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}" ]]; then
+      elif [[ -n "${applicationVersion}" ]] && scriptAvailable "${cosysesPath}/${applicationName}/${applicationVersion}/${applicationScript}"; then
         applicationScriptPath="${cosysesPath}/${applicationName}/${applicationVersion}"
         break
       fi
