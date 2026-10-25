@@ -1,0 +1,71 @@
+name: Check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      application:
+        description: Application to test with test.sh, e.g. Varnish (empty for checks only)
+        required: false
+      version:
+        description: Version, e.g. 7.7 (empty for all versions)
+        required: false
+      release:
+        description: Ubuntu release, e.g. 22.04 (empty for all releases of the version)
+        required: false
+      script:
+        description: Script, default install.sh
+        required: false
+      prepare:
+        description: Application to install first, e.g. PHP 8.4
+        required: false
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck
+        run: find . -name '*.sh' -not -path './.git/*' -print0 | xargs -0 shellcheck --severity=error
+
+      - name: Executable scripts
+        run: |
+          files=$(git ls-files -s -- '*.sh' | grep -v '^100755' | cut -f2)
+          if [[ -n "${files}" ]]; then
+            echo "Scripts committed without executable bit, fix with: git update-index --chmod=+x <file>"
+            echo "${files}"
+            exit 1
+          fi
+
+  test:
+    if: github.event_name == 'workflow_dispatch' && inputs.application != ''
+    needs: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test
+        env:
+          APPLICATION: ${{ inputs.application }}
+          VERSION: ${{ inputs.version }}
+          RELEASE: ${{ inputs.release }}
+          SCRIPT: ${{ inputs.script }}
+          PREPARE: ${{ inputs.prepare }}
+        run: |
+          options=()
+          if [[ -n "${SCRIPT}" ]]; then options+=(--script "${SCRIPT}"); fi
+          if [[ -n "${PREPARE}" ]]; then options+=(--prepare "${PREPARE}"); fi
+          arguments=("${APPLICATION}")
+          if [[ -n "${VERSION}" ]]; then arguments+=("${VERSION}"); fi
+          if [[ -n "${VERSION}" ]] && [[ -n "${RELEASE}" ]]; then arguments+=("${RELEASE}"); fi
+          ./test.sh --logPath "${RUNNER_TEMP}/cosyses-test" "${options[@]}" "${arguments[@]}"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: ${{ runner.temp }}/cosyses-test
