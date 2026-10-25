@@ -29,11 +29,16 @@ install-package build-essential
 install-package "php${phpVersion}-dev"
 install-package php-pear 1:1.10
 
-install-package libmcrypt-dev
-install-pecl-package "mcrypt" 1.0.9
+# For PHP 5 mcrypt is a regular extension package
+if [[ "${phpVersion%%.*}" -lt 7 ]]; then
+  install-package "php${phpVersion}-mcrypt"
+else
+  install-package libmcrypt-dev
+  install-pecl-package "mcrypt" 1.0.9
 
-echo "Creating configuration at: /etc/php/${phpVersion}/mods-available/mcrypt.ini"
-echo "extension=mcrypt.so" > "/etc/php/${phpVersion}/mods-available/mcrypt.ini"
+  echo "Creating configuration at: /etc/php/${phpVersion}/mods-available/mcrypt.ini"
+  echo "extension=mcrypt.so" > "/etc/php/${phpVersion}/mods-available/mcrypt.ini"
+fi
 
 if [[ -n $(which phpenmod) ]]; then
   echo "Enabling module mcrypt"
