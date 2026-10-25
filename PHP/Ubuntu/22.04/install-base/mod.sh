@@ -54,7 +54,8 @@ if [[ -z "$(command -v "php${phpVersion}")" ]]; then
     --clean no
 fi
 
-install-package "libapache2-mod-php${phpVersion}"
+# Ubuntu has transitional packages with this name for Ubuntu PHP, use the version of the installed PHP
+install-package "libapache2-mod-php${phpVersion}" "$(get-installed-package-version "php${phpVersion}-common")"
 install-package libcurl4-openssl-dev
 
 replace-file-content /etc/php/${phpVersion}/apache2/php.ini "max_execution_time = 3600" "max_execution_time = 30"
