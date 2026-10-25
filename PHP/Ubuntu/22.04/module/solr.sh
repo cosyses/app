@@ -12,13 +12,15 @@ if [[ -z "${applicationVersion}" ]]; then
   exit 1
 fi
 
-phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
-if [[ -z "${phpVersion}" ]]; then
+phpVersion="${applicationVersion}"
+if [[ -z "$(command -v "php${phpVersion}")" ]]; then
   cosyses \
     --applicationName "${applicationName}" \
     --applicationVersion "${applicationVersion}" \
     --type cli
-elif [[ -n "$(php -m | grep -e ^solr\$ | cat)" ]]; then
+fi
+
+if [[ -n "$("php${phpVersion}" -m | grep -e ^solr\$ | cat)" ]]; then
   echo "PHP module solr already installed"
   exit 0
 fi
@@ -30,10 +32,16 @@ install-package php-pear 1:1.10
 install-package tar
 install-package wget
 
+if [[ "${phpVersion%%.*}" -lt 8 ]]; then
+  solrVersion="2.6.0"
+else
+  solrVersion="2.8.1"
+fi
+
 cd /tmp
-wget -nv https://pecl.php.net/get/solr-2.8.1.tgz
-tar zxvf solr-2.8.1.tgz
-cd solr-2.8.1
+wget -nv "https://pecl.php.net/get/solr-${solrVersion}.tgz"
+tar zxvf "solr-${solrVersion}.tgz"
+cd "solr-${solrVersion}"
 
 install-package libcurl4-openssl-dev
 install-package libxml2-dev

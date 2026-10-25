@@ -15,8 +15,8 @@ fi
 echo "Checking curl"
 test ! -e /usr/local/include/curl && ln -s /usr/include/x86_64-linux-gnu/curl /usr/local/include/curl || echo "Successful"
 
-phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)
-if [[ -z "${phpVersion}" ]]; then
+phpVersion="${applicationVersion}"
+if [[ -z "$(command -v "php${phpVersion}")" ]]; then
   cosyses \
     --applicationName "${applicationName}" \
     --applicationVersion "${applicationVersion}" \
