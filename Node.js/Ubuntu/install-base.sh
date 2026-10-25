@@ -40,6 +40,22 @@ if [[ -n "${nodejsBuildVersion}" ]]; then
   cd /
   rm -rf /tmp/node.js
 else
+  # Remove NodeSource repositories of other versions, without key ring or from the NodeSource setup script, they conflict with this one
+  for aptFile in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+    if [[ -f "${aptFile}" ]] && grep -q "deb\.nodesource\.com" "${aptFile}"; then
+      echo "Removing NodeSource repository from: ${aptFile}"
+      if [[ "${aptFile}" == *.sources ]]; then
+        rm -f "${aptFile}"
+      else
+        sed -i '/deb\.nodesource\.com/d' "${aptFile}"
+        if [[ ! -s "${aptFile}" ]]; then
+          rm -f "${aptFile}"
+        fi
+      fi
+    fi
+  done
+  rm -f /etc/apt/trusted.gpg.d/nodesource*
+
   add-gpg-repository nodejs.list "https://deb.nodesource.com/node_${nodejsVersion%%.*}.x" nodistro main https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 
   install-package nodejs "${nodejsVersion}"
