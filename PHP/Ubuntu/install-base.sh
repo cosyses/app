@@ -42,7 +42,7 @@ if [[ -z "${type}" ]]; then
 fi
 
 if [[ " ${phpTypes} " =~ \ ${type}\  ]]; then
-  source "${cosysesPath}/PHP/Ubuntu/22.04/install-base/${type}.sh" "${prepareParametersList[@]}"
+  source "${cosysesPath}/PHP/Ubuntu/install-base/${type}.sh" "${prepareParametersList[@]}"
 else
   >&2 echo "Could not find PHP installation of type: ${type}"
   exit 1
