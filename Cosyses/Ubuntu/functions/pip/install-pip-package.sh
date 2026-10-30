@@ -18,5 +18,5 @@ if [[ "${latestVersion}" == "${installedVersion}" ]]; then
 else
   echo "Installing pip package ${packageName}=${latestVersion}"
   # Ubuntu 24.04 and later mark the system Python as externally managed (PEP 668)
-  PIP_BREAK_SYSTEM_PACKAGES=1 pip install --force-reinstall "${packageName}==${latestVersion}"
+  PIP_BREAK_SYSTEM_PACKAGES=1 pip install "${packageName}==${latestVersion}"
 fi
