@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 packageName="${1}"
-baseVersion="${3}"
+baseVersion="${2}"
 
 latestVersion=$(get-latest-pip-package-version "${packageName}" "${baseVersion}")
 installedVersion=$(get-installed-pip-package-version "${packageName}")
@@ -17,5 +17,6 @@ if [[ "${latestVersion}" == "${installedVersion}" ]]; then
   echo "Latest pip package ${packageName}=${latestVersion} already installed"
 else
   echo "Installing pip package ${packageName}=${latestVersion}"
-  pip install --force-reinstall "${packageName}==${latestVersion}"
+  # Ubuntu 24.04 and later mark the system Python as externally managed (PEP 668)
+  PIP_BREAK_SYSTEM_PACKAGES=1 pip install --force-reinstall "${packageName}==${latestVersion}"
 fi
