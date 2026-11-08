@@ -14,14 +14,15 @@ usage: ${scriptFileName} [options] <Name> [<Version> [<Release>]] [-- <script op
 
 Runs install scripts of this checkout in fresh cosyses/ubuntu containers.
 Without a version, every version of the application is tested.
-Without a release, every release with an own directory below <Name>/<Version>/Ubuntu or listed in <Name>/<Version>/Ubuntu/releases is tested.
+Without a release, every release with an own directory below <Name>/<Version>/<Distribution> or listed in <Name>/<Version>/<Distribution>/releases is tested.
 
 OPTIONS:
   --help             Show this message
   --script <file>    Script to run, default: install.sh
   --release <list>   Comma separated releases, used if not detected from directories, default: 22.04
   --arm              Use the arm64 images (<release>-arm)
-  --image <name>     Image name, default: cosyses/ubuntu
+  --distribution <n> Distribution of the scripts and images, default: Ubuntu (e.g. Alpine)
+  --image <name>     Image name, default: cosyses/<distribution in lower case>
   --logPath <path>   Path of the log files, default: ${TMPDIR:-/tmp}/cosyses-test
   --prepare <cmd>    Install a dependency first, e.g. "PHP 8.4", can be used multiple times
   --start            Run the start scripts the prepare commands created in /usr/local/lib/start before the script
@@ -31,6 +32,7 @@ OPTIONS:
 
 Example: ${scriptFileName} Varnish 7.7 22.04
 Example: ${scriptFileName} Tini 0.19
+Example: ${scriptFileName} --distribution Alpine PHP 8.4 3.24
 Example: ${scriptFileName} --prepare "PHP 8.4" Composer 2.9 22.04
 Example: ${scriptFileName} --prepare "Elasticsearch 8.4" --start --waitPort 9200 --script magento.sh Elasticsearch 8.4 22.04
 Example: ${scriptFileName} --check "chromium --version" Chromium 156.0 24.04
@@ -41,7 +43,8 @@ EOF
 applicationScript="install.sh"
 defaultReleases="22.04"
 arm=0
-image="cosyses/ubuntu"
+distribution="Ubuntu"
+image=
 logPath="${TMPDIR:-/tmp}/cosyses-test"
 shell=0
 prepareCommands=( )
@@ -57,6 +60,7 @@ while [[ "$#" -gt 0 ]]; do
     --script) applicationScript="${2}"; shift 2 ;;
     --release) defaultReleases="${2}"; shift 2 ;;
     --arm) arm=1; shift ;;
+    --distribution) distribution="${2}"; shift 2 ;;
     --image) image="${2}"; shift 2 ;;
     --logPath) logPath="${2}"; shift 2 ;;
     --prepare) prepareCommands+=( "${2}" ); shift 2 ;;
@@ -69,6 +73,10 @@ while [[ "$#" -gt 0 ]]; do
     *) positionalParameters+=( "${1}" ); shift ;;
   esac
 done
+
+if [[ -z "${image}" ]]; then
+  image="cosyses/${distribution,,}"
+fi
 
 applicationName="${positionalParameters[0]}"
 applicationVersion="${positionalParameters[1]}"
@@ -108,19 +116,19 @@ for version in "${applicationVersions[@]}"; do
     releases=( "${applicationRelease}" )
   else
     releases=( )
-    if [[ -n "${version}" ]] && [[ -d "${repositoryPath}/${applicationName}/${version}/Ubuntu" ]]; then
-      for releasePath in "${repositoryPath}/${applicationName}/${version}/Ubuntu"/*/; do
+    if [[ -n "${version}" ]] && [[ -d "${repositoryPath}/${applicationName}/${version}/${distribution}" ]]; then
+      for releasePath in "${repositoryPath}/${applicationName}/${version}/${distribution}"/*/; do
         if [[ -f "${releasePath}${applicationScript}" ]]; then
           releases+=( "$(basename "${releasePath}")" )
         fi
       done
       # Scripts shared between releases list them in a releases file
-      if [[ -f "${repositoryPath}/${applicationName}/${version}/Ubuntu/${applicationScript}" ]] && [[ -f "${repositoryPath}/${applicationName}/${version}/Ubuntu/releases" ]]; then
+      if [[ -f "${repositoryPath}/${applicationName}/${version}/${distribution}/${applicationScript}" ]] && [[ -f "${repositoryPath}/${applicationName}/${version}/${distribution}/releases" ]]; then
         while read -r sharedRelease; do
           if [[ -n "${sharedRelease}" ]] && [[ ! " ${releases[*]} " =~ \ ${sharedRelease}\  ]]; then
             releases+=( "${sharedRelease}" )
           fi
-        done < "${repositoryPath}/${applicationName}/${version}/Ubuntu/releases"
+        done < "${repositoryPath}/${applicationName}/${version}/${distribution}/releases"
       fi
     fi
     if [[ "${#releases[@]}" -eq 0 ]]; then
@@ -174,7 +182,7 @@ for combination in "${combinations[@]}"; do
     platform="linux/amd64"
   fi
 
-  label="${applicationName} ${version:-(latest)} ${applicationScript} on Ubuntu ${imageTag}"
+  label="${applicationName} ${version:-(latest)} ${applicationScript} on ${distribution} ${imageTag}"
   logFile="${logPath}/${applicationName}-${version:-latest}-${applicationScript//\//_}-${imageTag}.log"
 
   cosysesCommand=( cosyses --applicationName "${applicationName}" --applicationScript "${applicationScript}" )
