@@ -64,7 +64,7 @@ done
 distribution=$(awk -F= '/^NAME/{print $2}' /etc/os-release | tr -d '"')
 distributionVersion=$(awk -F= '/^VERSION_ID/{print $2}' /etc/os-release | tr -d '"')
 
-if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
+if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]] || [[ "${distribution}" == "Ubuntu" ]] || [[ "${distribution}" == "Alpine Linux" ]]; then
   basePath="/usr/local"
   binPath="${basePath}/bin"
   libPath="${basePath}/lib"
@@ -120,7 +120,8 @@ fi
 if [[ "${alreadyInstalled}" == 0 ]]; then
   echo "Preparing distribution detection"
 
-  if ! [[ -x "$(command -v lsb_release)" ]]; then
+  # Alpine has no lsb_release, install.sh reads /etc/os-release there
+  if [[ "${distribution}" != "Alpine Linux" ]] && ! [[ -x "$(command -v lsb_release)" ]]; then
     echo "Installing lsb_release"
     if [[ "${distribution}" == "CentOS Linux" ]]; then
       yum makecache
@@ -185,6 +186,8 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
       else
         apt-get update
       fi
+    elif [[ "${distribution}" == "Alpine Linux" ]]; then
+      apk update
     else
       >&2 echo "Unsupported OS: ${distribution}"
       exit 1
@@ -207,6 +210,9 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
     requiredPackages=( curl jq libcurl nss wget unzip )
   elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
     requiredPackages=( bc curl jq wget unzip )
+  elif [[ "${distribution}" == "Alpine Linux" ]]; then
+    # Busybox provides grep, sed, find and sort, but without the GNU options the scripts use
+    requiredPackages=( bash curl jq wget unzip coreutils findutils grep sed )
   elif [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     yum makecache
@@ -214,6 +220,12 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
   else
     >&2 echo "Unsupported OS: ${distribution}"
     exit 1
+  fi
+
+  if [[ "${distribution}" == "Alpine Linux" ]]; then
+    echo "Installing packages: ${requiredPackages[*]}"
+    apk add --no-interactive "${requiredPackages[@]}" 2>&1
+    requiredPackages=( )
   fi
 
   for requiredPackage in "${requiredPackages[@]}"; do
