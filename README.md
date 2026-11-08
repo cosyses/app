@@ -17,6 +17,12 @@ wget --no-cache -q -O - https://raw.githubusercontent.com/cosyses/app/master/set
 
 This downloads the latest release to `/usr/local/lib/cosyses/<version>`, links it as `/usr/local/lib/cosyses/current` and installs the `cosyses` command to `/usr/local/bin`. It also installs the helper commands the scripts use (`install-package`, `add-gpg-repository`, `replace-file-content`, `ensure-user`, …) to `/usr/local/bin`.
 
+On Alpine Linux, which has no bash by default, install it first. Alpine support is a proof of concept for Alpine 3.24, covering PHP 8.4 (CLI, FPM, Laravel extensions), Nginx 1.30, Librsvg 2.62 and Composer:
+
+```
+apk add bash && wget -q -O - https://raw.githubusercontent.com/cosyses/app/master/setup.sh | bash
+```
+
 To install a specific release instead of the latest:
 
 ```
