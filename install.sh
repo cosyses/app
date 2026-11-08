@@ -9,6 +9,9 @@ export cosysesPath
 
 usage()
 {
+if [[ -t 2 ]]; then
+  source "${cosysesPath}/banner.sh" >&2
+fi
 cat >&2 << EOF
 
 usage: cosyses [options]
@@ -117,6 +120,11 @@ if [[ -z "${applicationScript}" ]]; then
 fi
 
 if [[ "${helpRequested}" == 0 ]]; then
+  # Show the logo once per top-level run in a terminal, not for cosyses calls made by the scripts
+  if [[ -t 1 ]] && [[ -z "${cosysesBannerShown}" ]]; then
+    source "${cosysesPath}/banner.sh"
+    export cosysesBannerShown=1
+  fi
   if [[ -n "${applicationVersion}" ]]; then
     echo "Installing application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
   else
