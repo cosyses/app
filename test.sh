@@ -26,12 +26,14 @@ OPTIONS:
   --prepare <cmd>    Install a dependency first, e.g. "PHP 8.4", can be used multiple times
   --start            Run the start scripts the prepare commands created in /usr/local/lib/start before the script
   --waitPort <port>  With --start, wait up to 300 seconds until this local port accepts connections
+  --check <command>  Run this command after the script, e.g. to check the installed program works
   --shell            Open a shell in the container after the script finished (single run only)
 
 Example: ${scriptFileName} Varnish 7.7 22.04
 Example: ${scriptFileName} Tini 0.19
 Example: ${scriptFileName} --prepare "PHP 8.4" Composer 2.9 22.04
 Example: ${scriptFileName} --prepare "Elasticsearch 8.4" --start --waitPort 9200 --script magento.sh Elasticsearch 8.4 22.04
+Example: ${scriptFileName} --check "chromium --version" Chromium 156.0 24.04
 Example: ${scriptFileName} --script vhost.sh Nginx 1.29 22.04 -- --serverName test.local --webPath /var/www/htdocs
 EOF
 }
@@ -45,6 +47,7 @@ shell=0
 prepareCommands=( )
 start=0
 waitPort=
+checkCommand=
 positionalParameters=( )
 scriptParameters=( )
 
@@ -59,6 +62,7 @@ while [[ "$#" -gt 0 ]]; do
     --prepare) prepareCommands+=( "${2}" ); shift 2 ;;
     --start) start=1; shift ;;
     --waitPort) waitPort="${2}"; shift 2 ;;
+    --check) checkCommand="${2}"; shift 2 ;;
     --shell) shell=1; shift ;;
     --) shift; scriptParameters=( "$@" ); break ;;
     -*) >&2 echo "Unknown option: ${1}"; usage; exit 1 ;;
@@ -217,6 +221,9 @@ EOF
 $(printf '%q ' "${cosysesCommand[@]}")
 EOF
 )
+  if [[ -n "${checkCommand}" ]]; then
+    containerScript+=$'\n'"echo $(printf '%q' "=== Running check: ${checkCommand}")"$'\n'"${checkCommand}"
+  fi
   if [[ "${shell}" == 1 ]]; then
     containerScript+=$'\n'"echo 'Opening shell, exit to remove the container'; exec bash"
   fi

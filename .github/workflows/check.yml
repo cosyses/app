@@ -21,6 +21,13 @@ on:
       prepare:
         description: Application to install first, e.g. PHP 8.4
         required: false
+      check:
+        description: Command to run after the script, e.g. chromium --version
+        required: false
+      arm:
+        description: Test with the arm64 images on an arm64 runner
+        type: boolean
+        default: false
 
 jobs:
   lint:
@@ -43,7 +50,7 @@ jobs:
   test:
     if: github.event_name == 'workflow_dispatch' && inputs.application != ''
     needs: lint
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.arm && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -54,10 +61,14 @@ jobs:
           RELEASE: ${{ inputs.release }}
           SCRIPT: ${{ inputs.script }}
           PREPARE: ${{ inputs.prepare }}
+          CHECK: ${{ inputs.check }}
+          ARM: ${{ inputs.arm }}
         run: |
           options=()
           if [[ -n "${SCRIPT}" ]]; then options+=(--script "${SCRIPT}"); fi
           if [[ -n "${PREPARE}" ]]; then options+=(--prepare "${PREPARE}"); fi
+          if [[ -n "${CHECK}" ]]; then options+=(--check "${CHECK}"); fi
+          if [[ "${ARM}" == "true" ]]; then options+=(--arm); fi
           arguments=("${APPLICATION}")
           if [[ -n "${VERSION}" ]]; then arguments+=("${VERSION}"); fi
           if [[ -n "${VERSION}" ]] && [[ -n "${RELEASE}" ]]; then arguments+=("${RELEASE}"); fi
