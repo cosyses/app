@@ -23,7 +23,9 @@ if [[ -z "$(command -v "php${phpVersion}")" ]]; then
     --type cli
 fi
 
+install-package "php${phpVersion}-bcmath"
 install-package "php${phpVersion}-curl"
+install-package "php${phpVersion}-gd"
 install-package "php${phpVersion}-mbstring"
 install-package "php${phpVersion}-intl"
 install-package "php${phpVersion}-mysql"
