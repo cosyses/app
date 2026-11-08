@@ -101,3 +101,7 @@ When adding or changing a script:
 - Check scripts with `shellcheck`, and commit them as executable (`100755`). CI runs both on every push and pull request.
 
 Servers and containers only receive changes through a GitHub release; `./release.sh` tags and publishes the next version.
+
+## License
+
+Cosyses is released under the [MIT License](LICENSE).
