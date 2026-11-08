@@ -80,6 +80,32 @@ mkdir -p "${cosysesPath}"
 
 currentReleasePath="${cosysesPath}/current"
 
+# Ends the setup without changing the installation: an update keeps a working installed release, a new installation fails
+abortSetup()
+{
+  local currentReleaseTarget
+  currentReleaseTarget=$(readlink -f "${currentReleasePath}" 2>/dev/null || true)
+  if [[ -n "${currentReleaseTarget}" ]] && [[ -f "${currentReleaseTarget}/install.sh" ]]; then
+    >&2 echo "Warning: ${1} Keeping installed release: $(basename "${currentReleaseTarget}")"
+    exit 0
+  fi
+  >&2 echo "${1}"
+  exit 1
+}
+
+# Prints the release data, fails on HTTP errors and on data without a valid release version
+determineReleaseData()
+{
+  local data
+  if ! data=$(curl -sfL "${gitReleaseUrl}" 2>/dev/null); then
+    return 1
+  fi
+  if ! [[ $(echo "${data}" | jq -r '.tag_name' 2>/dev/null) =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    return 1
+  fi
+  echo "${data}"
+}
+
 alreadyInstalled=0
 
 if [[ -n "${applicationVersion}" ]]; then
@@ -221,15 +247,15 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
   fi
 
   echo "Determining release data"
-  releaseData=$(curl -s "${gitReleaseUrl}" 2>/dev/null | cat)
+  releaseData=$(determineReleaseData || true)
   if [[ -z "${releaseData}" ]]; then
     counter=0
     until [[ "${counter}" -gt 20 ]]; do
-      ((counter++))
+      ((counter++)) || true
       >&2 echo "Could not determine release data. Waiting three seconds to avoid too many requests timeout."
       sleep 3
       echo "Determining release data (retry #${counter})"
-      releaseData=$(curl -s "${gitReleaseUrl}" 2>/dev/null | cat)
+      releaseData=$(determineReleaseData || true)
       if [[ -n "${releaseData}" ]]; then
         break;
       fi
@@ -237,8 +263,7 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
   fi
 
   if [[ -z "${releaseData}" ]]; then
-    >&2 echo "Could not determine release data."
-    exit 1
+    abortSetup "Could not determine release data from: ${gitReleaseUrl}"
   fi
 
   releaseVersion=$(echo "${releaseData}" | jq -r '.tag_name')
@@ -260,57 +285,52 @@ if [[ "${alreadyInstalled}" == 0 ]]; then
     echo "Release already installed"
   else
     releaseZipUrl=$(echo "${releaseData}" | jq -r '.zipball_url')
+    if ! [[ "${releaseZipUrl}" =~ ^https?:// ]]; then
+      abortSetup "No release archive found for release: ${releaseVersion}"
+    fi
     releaseZipPath="${cosysesPath}/${releaseVersion}.zip"
+    releaseTempPath="${cosysesPath}/${releaseVersion}.tmp"
+    rm -rf "${releaseZipPath}" "${releaseTempPath}"
 
     echo "Downloading release archive from url: ${releaseZipUrl}"
-    result=$(wget -q -O "${releaseZipPath}" "${releaseZipUrl}" 2>&1 | cat)
-
-    if [[ ! -f "${releaseZipPath}" ]]; then
-      if [[ "${result}" =~ "ERROR 429" ]]; then
-        counter=0
-        until [[ "${counter}" -gt 20 ]]; do
-          ((counter++))
-          echo "Could not download release archive. Waiting three seconds to avoid too many requests timeout"
-          sleep 3
-          echo "Downloading release archive from url: ${releaseZipUrl} (retry #${counter})"
-          result=$(wget -q -O "${releaseZipPath}" "${releaseZipUrl}" 2>&1 | cat)
-          if [[ -f "${releaseZipPath}" ]]; then
-            break;
-          fi
-          if ! [[ "${result}" =~ "ERROR 429" ]]; then
-            >&2 echo "${result}"
-            exit 1
-          fi
-        done
-      else
-        >&2 echo "${result}"
-        exit 1
+    counter=0
+    until result=$(wget -q -O "${releaseZipPath}" "${releaseZipUrl}" 2>&1); do
+      rm -f "${releaseZipPath}"
+      if ! [[ "${result}" =~ "ERROR 429" ]] || [[ "${counter}" -ge 20 ]]; then
+        abortSetup "Could not download release archive from: ${releaseZipUrl} ${result}"
       fi
-    fi
+      ((counter++)) || true
+      echo "Could not download release archive. Waiting three seconds to avoid too many requests timeout"
+      sleep 3
+      echo "Downloading release archive from url: ${releaseZipUrl} (retry #${counter})"
+    done
 
-    if [[ ! -f "${releaseZipPath}" ]]; then
-      >&2 echo "Download failed"
-      exit 1
-    fi
-
+    # Extract into a temporary directory, so that an incomplete release is never taken for an installed one
     echo "Extracting downloaded release archive"
-    unzip -o -q "${releaseZipPath}" -d "${releasePath}"
+    if ! unzip -o -q "${releaseZipPath}" -d "${releaseTempPath}"; then
+      rm -rf "${releaseZipPath}" "${releaseTempPath}"
+      abortSetup "Could not extract release archive downloaded from: ${releaseZipUrl}"
+    fi
 
     echo "Removing downloaded release archive"
     rm -rf "${releaseZipPath}"
 
-    echo "Release archive extracted to: ${releasePath}"
-    cd "${releasePath}"
-    releasePathGitPath=$(find . -maxdepth 1 -type d -name '[^.]?*' -printf %f -quit)
+    releasePathGitPath=$(find "${releaseTempPath}" -mindepth 1 -maxdepth 1 -type d -name '[^.]?*' -printf %f -quit)
+    if [[ -z "${releasePathGitPath}" ]] || [[ ! -f "${releaseTempPath}/${releasePathGitPath}/install.sh" ]]; then
+      rm -rf "${releaseTempPath}"
+      abortSetup "Release archive downloaded from: ${releaseZipUrl} contains no installation"
+    fi
 
     echo "Found git directory: ${releasePathGitPath}"
-    shopt -s dotglob
-    mv -- "${releasePathGitPath}"/* .
-    shopt -u dotglob
-
-    echo "Removing git directory: ${releasePathGitPath}"
-    rm -rf "${releasePathGitPath}"
+    mv "${releaseTempPath}/${releasePathGitPath}" "${releasePath}"
+    rm -rf "${releaseTempPath}"
+    echo "Release archive extracted to: ${releasePath}"
+    cd "${releasePath}"
   fi
+fi
+
+if [[ ! -f "${releasePath}/install.sh" ]]; then
+  abortSetup "Release at: ${releasePath} is incomplete."
 fi
 
 if [[ -L "${currentReleasePath}" ]]; then
