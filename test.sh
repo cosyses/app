@@ -185,14 +185,15 @@ set -e
 ln -sfn /usr/local/lib/cosyses/local /usr/local/lib/cosyses/current
 update-packages
 cosyses --applicationName Cosyses --applicationScript functions.sh
-imageStartScripts=\$(ls /usr/local/lib/start)
+# Older images (e.g. the arm64 ones) have no start directory
+imageStartScripts=\$(ls /usr/local/lib/start 2>/dev/null || true)
 $(for prepareCommand in "${prepareCommands[@]}"; do echo "cosyses ${prepareCommand}"; done)
 EOF
 )
   # Start the services the prepare commands installed, the image's own start scripts (update, ssh) are skipped
   if [[ "${start}" == 1 ]]; then
     containerScript+=$'\n'$(cat << EOF
-for startScript in \$(ls /usr/local/lib/start | grep '\\.sh\$'); do
+for startScript in \$(ls /usr/local/lib/start 2>/dev/null | grep '\\.sh\$'); do
   if ! grep -qxF "\${startScript}" <<< "\${imageStartScripts}"; then
     echo "=== Running start script: \${startScript}"
     bash "/usr/local/lib/start/\${startScript}"
