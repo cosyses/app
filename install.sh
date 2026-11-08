@@ -119,6 +119,11 @@ if [[ -z "${applicationScript}" ]]; then
   applicationScript="install.sh"
 fi
 
+# All scripts are shell scripts, so "magento" finds magento.sh
+if [[ "${applicationScript}" != *.sh ]]; then
+  applicationScript="${applicationScript}.sh"
+fi
+
 if [[ "${helpRequested}" == 0 ]]; then
   # Show the logo once per top-level run in a terminal, not for cosyses calls made by the scripts
   if [[ -t 1 ]] && [[ -z "${cosysesBannerShown}" ]]; then
@@ -165,9 +170,9 @@ fi
 
 if [[ -z "${applicationScriptPath}" ]]; then
   if [[ -n "${applicationVersion}" ]]; then
-    >&2 echo "Could not any find script to install application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
+    >&2 echo "Could not find any script to install application: ${applicationName} with version: ${applicationVersion} and script: ${applicationScript}"
   else
-    >&2 echo "Could not any find script to install application: ${applicationName} with script: ${applicationScript}"
+    >&2 echo "Could not find any script to install application: ${applicationName} with script: ${applicationScript}"
   fi
   exit 1
 fi
