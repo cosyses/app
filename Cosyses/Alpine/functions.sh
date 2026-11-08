@@ -42,3 +42,9 @@ install-package sudo
 install-package curl
 install-package wget
 install-package ca-certificates
+
+# Ubuntu has the user www-data, Alpine only its group (82), the user gets the uid of the official Alpine based images
+if ! id www-data >/dev/null 2>&1; then
+  echo "Creating user: www-data"
+  useradd --system --uid 82 --gid www-data --home-dir /var/www --no-create-home --shell /sbin/nologin www-data
+fi
