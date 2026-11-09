@@ -23,6 +23,8 @@ OPTIONS:
                     without vendor
   --toolName        Name of the directory below /usr/local/lib/composer-tools, default: name of the package without
                     vendor
+  --phpExtensions   Comma separated PHP extensions the tool needs, installed as packages of the PHP version, for
+                    example: mbstring,xml
 
 Example: ${scriptFileName} --packageName rector/rector --packageVersion ~2.8.0
 EOF
@@ -38,6 +40,7 @@ packageName=
 packageVersion=
 binaryNames=
 toolName=
+phpExtensions=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${packageName}" ]]; then
@@ -68,6 +71,21 @@ fi
 if [[ ! -x "$(command -v composer)" ]]; then
   >&2 echo "Composer not found, install it first (cosyses Composer <version>)"
   exit 1
+fi
+
+if [[ -n "${phpExtensions}" ]]; then
+  phpVersion=$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')
+  IFS=',' read -r -a phpExtensionList <<< "${phpExtensions}"
+  for phpExtension in "${phpExtensionList[@]}"; do
+    if php -m | grep -qix "${phpExtension}"; then
+      echo "PHP extension already installed: ${phpExtension}"
+    elif [[ -x "$(command -v apk)" ]]; then
+      # Alpine names the PHP packages without the dot, e.g. php84-mbstring
+      install-package "php${phpVersion//./}-${phpExtension}"
+    else
+      install-package "php${phpVersion}-${phpExtension}"
+    fi
+  done
 fi
 
 toolPath="/usr/local/lib/composer-tools/${toolName}"
