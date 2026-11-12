@@ -222,10 +222,10 @@ if [[ -z "${phpPath}" ]]; then
   else
     phpPath="\.php\$"
   fi
-else
-  phpPath="${phpPath//\\/\\\\}"
-  phpPath="${phpPath//$/\\\\$}"
 fi
+# The default is escaped like a given path: each cosyses call strips one level of backslashes
+phpPath="${phpPath//\\/\\\\}"
+phpPath="${phpPath//$/\\\\$}"
 
 if [[ -z "${application}" ]]; then
   application="no"

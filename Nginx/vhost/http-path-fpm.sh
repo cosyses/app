@@ -126,12 +126,12 @@ if [[ -z "${rootPathFallback}" ]]; then
   rootPathFallback="/index.php?\$args"
 fi
 
+# The default is escaped like a given path: each cosyses call strips one level of backslashes
 if [[ -z "${phpPath}" ]]; then
   phpPath="\.php\$"
-else
-  phpPath="${phpPath//\\/\\\\}"
-  phpPath="${phpPath//$/\\\\$}"
 fi
+phpPath="${phpPath//\\/\\\\}"
+phpPath="${phpPath//$/\\\\$}"
 
 if [[ -z "${append}" ]]; then
   append="no"
