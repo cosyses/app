@@ -18,8 +18,11 @@ OPTIONS:
   --dynamicPath  Directory with the dynamic configuration (routers and services), watched for changes,
                  default: /etc/traefik/dynamic
   --logLevel     Log level (TRACE, DEBUG, INFO, WARN, ERROR), default: INFO
+  --dashboard    Enable the dashboard and API (yes/no), default: no
+                 They are only reached through a router with the service api@internal in the dynamic
+                 configuration, the dashboard at the path /dashboard/
 
-Example: ${scriptFileName} --httpPort 80 --sslPort 443 --dynamicPath /etc/traefik/dynamic
+Example: ${scriptFileName} --httpPort 80 --sslPort 443 --dynamicPath /etc/traefik/dynamic --dashboard yes
 EOF
 }
 
@@ -33,6 +36,7 @@ httpPort=
 sslPort=
 dynamicPath=
 logLevel=
+dashboard=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${httpPort}" ]]; then
@@ -49,6 +53,15 @@ fi
 
 if [[ -z "${logLevel}" ]]; then
   logLevel="INFO"
+fi
+
+if [[ -z "${dashboard}" ]]; then
+  dashboard="no"
+fi
+
+if [[ "${dashboard}" != "yes" ]] && [[ "${dashboard}" != "no" ]]; then
+  >&2 echo "Invalid value for dashboard: ${dashboard}, use yes or no"
+  exit 1
 fi
 
 traefikVersion="3.7.17"
@@ -100,6 +113,14 @@ global:
   checkNewVersion: false
   sendAnonymousUsage: false
 EOF
+
+if [[ "${dashboard}" == "yes" ]]; then
+  echo "Enabling dashboard and API"
+  cat <<EOF >>/etc/traefik/traefik.yml
+api:
+  dashboard: true
+EOF
+fi
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/traefik.sh"
