@@ -60,8 +60,15 @@ if [[ ! -f "${sslKeyFile}" ]]; then
   exit 1
 fi
 
-echo "Adding to configuration at: /etc/caddy/Caddyfile"
+# The default sites sit between markers, so running this script again replaces them instead of adding them twice
+if grep -qx "# cosyses default sites start" /etc/caddy/Caddyfile; then
+  echo "Replacing default sites in configuration at: /etc/caddy/Caddyfile"
+  sed -i '/^# cosyses default sites start$/,/^# cosyses default sites end$/d' /etc/caddy/Caddyfile
+else
+  echo "Adding default sites to configuration at: /etc/caddy/Caddyfile"
+fi
 cat <<EOF | tee -a /etc/caddy/Caddyfile > /dev/null
+# cosyses default sites start
 *:${httpPort} {
   root * /usr/share/caddy
   file_server {
@@ -81,6 +88,7 @@ cat <<EOF | tee -a /etc/caddy/Caddyfile > /dev/null
     output file /var/log/caddy/access.log
   }
 }
+# cosyses default sites end
 EOF
 
 if [[ ! -f /.dockerenv ]]; then
