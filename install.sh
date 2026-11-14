@@ -36,17 +36,32 @@ prepareParametersList=
 helpRequested=
 source "${cosysesPath}/prepare-parameters.sh"
 
-if [[ -x "$(command -v lsb_release)" ]]; then
+# The distribution directory and release of the scripts, from /etc/os-release (lsb_release is missing on Alpine and
+# RHEL 9 and later). RHEL compatible distributions share the directory RHEL and use the major version as release.
+distribution=
+release=
+if [[ -f /etc/os-release ]]; then
+  osId=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '"')
+  osVersion=$(awk -F= '/^VERSION_ID=/{print $2}' /etc/os-release | tr -d '"')
+  case "${osId}" in
+    ubuntu) distribution="Ubuntu"; release=$(cut -f1-2 -d"." <<< "${osVersion}") ;;
+    alpine) distribution="Alpine"; release=$(cut -f1-2 -d"." <<< "${osVersion}") ;;
+    debian) distribution="Debian"; release=$(cut -f1 -d"." <<< "${osVersion}") ;;
+    fedora) distribution="Fedora"; release="${osVersion}" ;;
+    rhel|almalinux|rocky|centos) distribution="RHEL"; release=$(cut -f1 -d"." <<< "${osVersion}") ;;
+    opensuse-leap) distribution="openSUSE"; release=$(cut -f1-2 -d"." <<< "${osVersion}") ;;
+  esac
+fi
+if [[ -z "${distribution}" ]] && [[ -x "$(command -v lsb_release)" ]]; then
   distribution=$(lsb_release -i | awk '{print $3}')
   release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
-elif grep -qx "ID=alpine" /etc/os-release 2>/dev/null; then
-  # Alpine has no lsb_release
-  distribution="Alpine"
-  release=$(awk -F= '/^VERSION_ID=/{print $2}' /etc/os-release | tr -d '"' | cut -f1-2 -d".")
-else
-  >&2 echo "Could not determine the distribution, lsb_release is missing!"
+fi
+if [[ -z "${distribution}" ]] || [[ -z "${release}" ]]; then
+  >&2 echo "Could not determine the distribution!"
   exit 1
 fi
+export distribution
+export release
 
 # A script is available if it exists and, if a releases file is next to it, the current release is listed there
 scriptAvailable()

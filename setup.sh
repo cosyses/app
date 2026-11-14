@@ -2,6 +2,7 @@
 
 applicationVersion=
 force=0
+localPath=
 
 declare -Ag prepareParameters
 unparsedParameters=( )
@@ -61,18 +62,40 @@ for unparsedParametersKey in "${!unparsedParameters[@]}"; do
   prepareParametersList+=( "${unparsedParametersValue}" )
 done
 
-distribution=$(awk -F= '/^NAME/{print $2}' /etc/os-release | tr -d '"')
-distributionVersion=$(awk -F= '/^VERSION_ID/{print $2}' /etc/os-release | tr -d '"')
+distribution=$(awk -F= '/^NAME=/{print $2}' /etc/os-release | tr -d '"')
+distributionId=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '"')
+distributionVersion=$(awk -F= '/^VERSION_ID=/{print $2}' /etc/os-release | tr -d '"')
 
-if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]] || [[ "${distribution}" == "Ubuntu" ]] || [[ "${distribution}" == "Alpine Linux" ]]; then
-  basePath="/usr/local"
-  binPath="${basePath}/bin"
-  libPath="${basePath}/lib"
-  cosysesPath="${libPath}/cosyses"
-else
-  >&2 echo "Unsupported OS: ${distribution}"
-  exit 1
-fi
+# The supported distributions by their package manager, RHEL compatible ones (AlmaLinux, Rocky, CentOS Stream) included
+case "${distributionId}" in
+  ubuntu|debian) packageManager="apt" ;;
+  fedora|rhel|almalinux|rocky|centos) packageManager="dnf" ;;
+  opensuse-leap) packageManager="zypper" ;;
+  alpine) packageManager="apk" ;;
+  *)
+    >&2 echo "Unsupported OS: ${distribution}"
+    exit 1
+    ;;
+esac
+
+basePath="/usr/local"
+binPath="${basePath}/bin"
+libPath="${basePath}/lib"
+cosysesPath="${libPath}/cosyses"
+
+# Installs packages with the native package manager
+installNativePackages()
+{
+  if [[ "${packageManager}" == "apt" ]]; then
+    DEBIAN_FRONTEND="noninteractive" apt-get install -y "$@" 2>&1
+  elif [[ "${packageManager}" == "dnf" ]]; then
+    dnf install -y "$@" 2>&1
+  elif [[ "${packageManager}" == "zypper" ]]; then
+    zypper --non-interactive install "$@" 2>&1
+  elif [[ "${packageManager}" == "apk" ]]; then
+    apk add --no-interactive "$@" 2>&1
+  fi
+}
 
 mkdir -p "${binPath}"
 mkdir -p "${libPath}"
@@ -118,140 +141,68 @@ if [[ -n "${applicationVersion}" ]]; then
 fi
 
 if [[ "${alreadyInstalled}" == 0 ]]; then
-  echo "Preparing distribution detection"
-
-  # Alpine has no lsb_release, install.sh reads /etc/os-release there
-  if [[ "${distribution}" != "Alpine Linux" ]] && ! [[ -x "$(command -v lsb_release)" ]]; then
-    echo "Installing lsb_release"
-    if [[ "${distribution}" == "CentOS Linux" ]]; then
-      yum makecache
-      yum swap -y fakesystemd systemd
-      yum clean all
-      yum install -y redhat-lsb-core
-    elif [[ "${distribution}" == "Debian GNU/Linux" ]]; then
-      apt-get update
-      DEBIAN_FRONTEND="noninteractive" apt-get install -y lsb-release
-    elif [[ "${distribution}" == "Fedora" ]]; then
-      dnf makecache
-      dnf install -y redhat-lsb
-    elif [[ "${distribution}" == "Manjaro Linux" ]]; then
-      pacman -Fy
-      yes | LANG=C pacman -S lsb-release
-    elif [[ "${distribution}" == "openSUSE Leap" ]]; then
-      zypper refresh
-      zypper install --no-confirm lsb-release
-    elif [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
-      yum makecache
-      yum install -y redhat-lsb-core
-    elif [[ "${distribution}" == "Ubuntu" ]]; then
-      if [[ $(printf '%s\n' "18.04" "${distributionVersion}" | sort -C -V && echo "yes" || echo "no") == "yes" ]]; then
-        apt-get update --allow-releaseinfo-change
-      else
-        apt-get update
-      fi
-      DEBIAN_FRONTEND="noninteractive" apt-get install -y apt-utils
-      DEBIAN_FRONTEND="noninteractive" apt-get install -y lsb-release
-    else
-      >&2 echo "Unsupported OS: ${distribution}"
-      exit 1
-    fi
-  fi
-
-  echo "Finished preparing distribution detection"
+  echo "Preparing package installation"
 
   if [[ -x "$(command -v update-packages)" ]]; then
     echo "Using custom packages update function"
-    customUpdate=1
-  else
-    echo "Using native packages update function"
-    customUpdate=0
-  fi
-
-  if [[ "${customUpdate}" == 1 ]]; then
     update-packages
   else
-    if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
-      yum makecache
-    elif [[ "${distribution}" == "Debian GNU/Linux" ]]; then
-      apt-get update
-    elif [[ "${distribution}" == "Fedora" ]]; then
-      dnf makecache
-    elif [[ "${distribution}" == "Manjaro Linux" ]]; then
-      pacman -Fy
-    elif [[ "${distribution}" == "openSUSE Leap" ]]; then
-      zypper refresh
-    elif [[ "${distribution}" == "Ubuntu" ]]; then
-      if [[ $(printf '%s\n' "18.04" "${distributionVersion}" | sort -C -V && echo "yes" || echo "no") == "yes" ]]; then
+    echo "Using native packages update function"
+    if [[ "${packageManager}" == "apt" ]]; then
+      if [[ "${distributionId}" == "ubuntu" ]] && [[ $(printf '%s\n' "18.04" "${distributionVersion}" | sort -C -V && echo "yes" || echo "no") == "yes" ]]; then
         apt-get update --allow-releaseinfo-change
       else
         apt-get update
       fi
-    elif [[ "${distribution}" == "Alpine Linux" ]]; then
+    elif [[ "${packageManager}" == "dnf" ]]; then
+      dnf makecache
+    elif [[ "${packageManager}" == "zypper" ]]; then
+      zypper --non-interactive refresh
+    elif [[ "${packageManager}" == "apk" ]]; then
       apk update
-    else
-      >&2 echo "Unsupported OS: ${distribution}"
-      exit 1
     fi
   fi
 
-  if [[ -x "$(command -v install-package)" ]]; then
-    echo "Using custom install function"
-    customInstall=1
-  else
-    echo "Using native install function"
-    customInstall=0
+  # Commands needed by this script, install.sh and the helper functions, with the package that provides them. Scripts
+  # of Ubuntu and Debian also call lsb_release. Busybox on Alpine provides grep, sed, find and sort, but without the
+  # GNU options the scripts use.
+  declare -A requiredPackages=( [bc]=bc [curl]=curl [jq]=jq [wget]=wget [unzip]=unzip [find]=findutils )
+  if [[ "${packageManager}" == "apt" ]]; then
+    requiredPackages[lsb_release]=lsb-release
+  elif [[ "${packageManager}" == "apk" ]]; then
+    requiredPackages=( [bash]=bash [curl]=curl [jq]=jq [wget]=wget [unzip]=unzip )
   fi
 
-  if [[ "${distribution}" == "CentOS Linux" ]]; then
-    yum install -y epel-release
-    sed -i -e "s/#baseurl=/baseurl=/g" /etc/yum.repos.d/epel.repo
-    sed -i -e "s/metalink=/#metalink=/g" /etc/yum.repos.d/epel.repo
-    yum makecache
-    requiredPackages=( curl jq libcurl nss wget unzip )
-  elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Fedora" ]] || [[ "${distribution}" == "openSUSE Leap" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-    requiredPackages=( bc curl jq wget unzip )
-  elif [[ "${distribution}" == "Alpine Linux" ]]; then
-    # Busybox provides grep, sed, find and sort, but without the GNU options the scripts use
-    requiredPackages=( bash curl jq wget unzip coreutils findutils grep sed )
-  elif [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
-    yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-    yum makecache
-    requiredPackages=( curl jq libcurl nss wget unzip )
-  else
-    >&2 echo "Unsupported OS: ${distribution}"
-    exit 1
-  fi
-
-  if [[ "${distribution}" == "Alpine Linux" ]]; then
-    echo "Installing packages: ${requiredPackages[*]}"
-    apk add --no-interactive "${requiredPackages[@]}" 2>&1
-    requiredPackages=( )
-  fi
-
-  for requiredPackage in "${requiredPackages[@]}"; do
-    if ! [[ -x "$(command -v "${requiredPackage}")" ]]; then
-      echo "Installing package: ${requiredPackage}"
-      if [[ "${customInstall}" == 1 ]]; then
-        install-package "${requiredPackage}"
-      else
-        if [[ "${distribution}" == "CentOS Linux" ]] || [[ "${distribution}" == "Red Hat Enterprise Linux" ]]; then
-          yum install -y "${requiredPackage}" 2>&1
-        elif [[ "${distribution}" == "Debian GNU/Linux" ]] || [[ "${distribution}" == "Ubuntu" ]]; then
-          DEBIAN_FRONTEND="noninteractive" apt-get install -y "${requiredPackage}" 2>&1
-        elif [[ "${distribution}" == "Fedora" ]]; then
-          dnf install -y "${requiredPackage}" 2>&1
-        elif [[ "${distribution}" == "openSUSE Leap" ]]; then
-          zypper install --no-confirm "${requiredPackage}" 2>&1
-        else
-          >&2 echo "Unsupported OS: ${distribution}"
-          exit 1
-        fi
-      fi
-    else
-      echo "${requiredPackage} already installed."
+  missingPackages=( )
+  for requiredCommand in "${!requiredPackages[@]}"; do
+    if ! [[ -x "$(command -v "${requiredCommand}")" ]]; then
+      missingPackages+=( "${requiredPackages[${requiredCommand}]}" )
     fi
   done
+  # Busybox has its own versions of these commands, so they are always installed on Alpine
+  if [[ "${packageManager}" == "apk" ]]; then
+    missingPackages+=( coreutils findutils grep sed )
+  fi
 
+  if [[ "${#missingPackages[@]}" -gt 0 ]]; then
+    echo "Installing packages: ${missingPackages[*]}"
+    installNativePackages "${missingPackages[@]}"
+  else
+    echo "Required packages already installed"
+  fi
+fi
+
+# A local checkout instead of a release, e.g. to test changes that are not released yet
+if [[ -n "${localPath}" ]]; then
+  if [[ ! -f "${localPath}/install.sh" ]]; then
+    >&2 echo "No Cosyses checkout at: ${localPath}"
+    exit 1
+  fi
+  releasePath=$(cd "${localPath}" && pwd)
+  echo "Using local checkout at: ${releasePath}"
+fi
+
+if [[ "${alreadyInstalled}" == 0 ]] && [[ -z "${localPath}" ]]; then
   if [[ -n "${applicationVersion}" ]]; then
     gitReleaseUrl="https://api.github.com/repos/cosyses/app/releases/tags/${applicationVersion}"
   else

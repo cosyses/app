@@ -2,7 +2,8 @@
 
 apt=$(which apt)
 
-if [[ -n "${apt}" ]]; then
+# Without ps (e.g. on Debian before procps is installed) there is nothing to wait for
+if [[ -n "${apt}" ]] && [[ -x "$(command -v ps)" ]]; then
   first=1
 
   while [[ $(ps aux | grep -i "${apt}" | grep -v grep | wc -l) -gt 0 ]] || [[ $(ps aux | grep -i "apt.systemd.daily lock_is_held" | grep -v grep | wc -l) -gt 0 ]]; do

@@ -23,11 +23,15 @@ On Alpine Linux, which has no bash by default, install it first. Alpine support 
 apk add bash && wget -q -O - https://raw.githubusercontent.com/cosyses/app/master/setup.sh | bash
 ```
 
+Cosyses also runs on Debian 12 and 13, RHEL 9 and 10 (and compatible distributions like AlmaLinux and Rocky Linux), Fedora 44 and 45 and openSUSE Leap 15.6 and 16.0, with helper commands for apt, dnf and zypper. So far only OpenSSH and Tini have routines for them (they are what the `cosyses/<distribution>` base images need), plus the routines that work on any distribution. Install `wget` first where it is missing. Scripts for them live below `Debian/<Release>`, `RHEL/<Major>`, `Fedora/<Release>` and `openSUSE/<Release>`.
+
 To install a specific release instead of the latest:
 
 ```
 wget --no-cache -q -O - https://raw.githubusercontent.com/cosyses/app/master/setup.sh | bash -s -- --applicationVersion 1.131.0
 ```
+
+To install a local checkout instead of a release, e.g. to try changes before they are released, pass `--localPath <checkout>`.
 
 The scripts install packages system-wide, so run them as root on the server or container you want to set up.
 
@@ -83,7 +87,7 @@ Scripts live in a tree of application, version, distribution and release:
 <Name>/vhost.sh                                # version-independent scripts at the application root
 ```
 
-`cosyses` detects the Ubuntu release and picks the most specific script that exists, falling back from the release directory to the version, the distribution and finally the application root. A `releases` file next to a script limits it to the releases listed there, which are the ones it was tested on. Without a version, the highest version that has a matching script is used.
+`cosyses` detects the distribution and release from `/etc/os-release` and picks the most specific script that exists, falling back from the release directory to the version, the distribution and finally the application root. A `releases` file next to a script limits it to the releases listed there, which are the ones it was tested on. Without a version, the highest version that has a matching script is used.
 
 Scripts build on each other: a framework script like `cosyses PHP 8.4 magento.sh` installs the PHP CLI first if it is missing, and `Nginx/vhost.sh` puts together a virtual host from prepared building blocks (HTTP or SSL, path or proxy, PHP-FPM, basic auth) plus optional settings for Magento, Shopware, Symfony, Laravel, WordPress or Pimcore.
 
