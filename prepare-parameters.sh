@@ -14,7 +14,7 @@ while [[ "$#" -gt 0 ]]; do
       elif [[ "${parameter}" =~ ^-[[:alpha:]]+[[:space:]]+ ]]; then
         parameter="${parameter:1}"
       fi
-      prepareParametersKey=$(echo "${parameter}" | grep -oP '[[:alpha:]]+(?=\s)' | tr -d "\n")
+      prepareParametersKey=$(echo "${parameter}" | grep -oP '^[[:alpha:]]+(?=\s)' | tr -d "\n")
       prepareParametersValue=$(echo "${parameter:${#prepareParametersKey}}" | xargs)
       # shellcheck disable=SC2034
       prepareParameters["${prepareParametersKey}"]="${prepareParametersValue}"

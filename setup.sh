@@ -11,7 +11,7 @@ while [[ "$#" -gt 0 ]]; do
   if [[ "${parameter:0:2}" == "--" ]] || [[ "${parameter}" =~ ^-[[:alpha:]][[:space:]]+ ]] || [[ "${parameter}" =~ ^-\?$ ]]; then
     if [[ "${parameter}" =~ ^--[[:alpha:]]+[[:space:]]+ ]]; then
       parameter="${parameter:2}"
-      prepareParametersKey=$(echo "${parameter}" | grep -oP '[[:alpha:]]+(?=\s)' | tr -d "\n")
+      prepareParametersKey=$(echo "${parameter}" | grep -oP '^[[:alpha:]]+(?=\s)' | tr -d "\n")
       prepareParametersValue=$(echo "${parameter:${#prepareParametersKey}}" | xargs)
       # shellcheck disable=SC2034
       prepareParameters["${prepareParametersKey}"]="${prepareParametersValue}"
