@@ -1,15 +1,16 @@
 #!/bin/bash -e
 
+# Uses the package of the distribution where it has version 0.19 (Ubuntu 22.04 and later, Debian, Fedora), the release
+# binary of Tini otherwise
 echo "Installing Tini"
 if [[ -n "$(get-available-package-versions tini 0.19)" ]]; then
   install-package tini 0.19
 else
-  architecture=$(dpkg --print-architecture)
-  case "${architecture}" in
-    amd64) tiniChecksum="93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c" ;;
-    arm64) tiniChecksum="07952557df20bfd2a95f9bef198b445e006171969499a1d361bd9e6f8e5e0e81" ;;
+  case "$(uname -m)" in
+    x86_64) architecture="amd64"; tiniChecksum="93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c" ;;
+    aarch64) architecture="arm64"; tiniChecksum="07952557df20bfd2a95f9bef198b445e006171969499a1d361bd9e6f8e5e0e81" ;;
     *)
-      >&2 echo "Unsupported architecture: ${architecture}"
+      >&2 echo "Unsupported architecture: $(uname -m)"
       exit 1
       ;;
   esac
