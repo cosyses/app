@@ -16,7 +16,7 @@ installFunctions()
 }
 
 # The helpers of these groups only use bash and common tools, so Fedora uses the ones of Ubuntu
-sharedGroups=( docker file host npm php pip ruby ssh user )
+sharedGroups=( docker file host npm php pip ruby ssh user version )
 for sharedGroup in "${sharedGroups[@]}"; do
   installFunctions "${currentPath}/../Ubuntu/functions/${sharedGroup}"
 done
