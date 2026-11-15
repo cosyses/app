@@ -153,7 +153,9 @@ else
   fi
 
   echo "Copying project to: ${appPath}"
-  cp -a "${projectPath}/." "${appPath}/"
+  # The entries are copied one by one: copying "${projectPath}/." would also set the times of the directory itself, which
+  # fails if it belongs to another user (e.g. a mounted volume)
+  find "${projectPath}" -mindepth 1 -maxdepth 1 -exec cp -a {} "${appPath}/" \;
   rm -rf "${tmpPath}"
 fi
 
