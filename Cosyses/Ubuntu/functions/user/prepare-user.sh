@@ -57,7 +57,7 @@ userBash=$(grep "${userName}" /etc/passwd | cut -d':' -f7)
 
 if [[ "${userBash}" != "/bin/bash" ]]; then
   echo "Enable bash for user: ${userName}"
-  chsh -s /bin/bash "${userName}"
+  usermod -s /bin/bash "${userName}"
 elif [[ "${verbose}" == 1 ]]; then
   echo "Bash for user: ${userName} already enabled"
 fi
@@ -117,7 +117,8 @@ sshIdFile="${sshDirectory}/id_rsa"
 
 if [[ ! -f "${sshIdFile}" ]]; then
   echo "Generating SSH key"
-  sudo -H -u "${userName}" bash -c "generate-ssh-key"
+  # sudo of RHEL, Fedora and openSUSE has no /usr/local/bin in its secure_path
+  sudo -H -u "${userName}" bash -c "$(command -v generate-ssh-key)"
 elif [[ "${verbose}" == 1 ]]; then
   echo "SSH key already generated"
 fi
