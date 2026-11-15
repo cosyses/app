@@ -120,6 +120,8 @@ for command in "\$@"; do
   /bin/bash "\${command}"
 done
 echo "Starting MySQL"
+mkdir -p /var/run/mysqld
+chown mysql:mysql /var/run/mysqld
 /usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
 tail -f /dev/null & wait \$!
 EOF
@@ -130,6 +132,9 @@ EOF
     cat <<EOF > /usr/local/lib/start/10-mysql.sh
 #!/usr/bin/env bash
 echo "Starting MySQL"
+# The run directory does not exist in a new container
+mkdir -p /var/run/mysqld
+chown mysql:mysql /var/run/mysqld
 /usr/sbin/mysqld --daemonize --user mysql --pid-file=/var/run/mysqld/mysqld.pid
 EOF
     chmod +x /usr/local/lib/start/10-mysql.sh
