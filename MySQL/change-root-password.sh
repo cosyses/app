@@ -34,6 +34,13 @@ databaseRootPassword=
 newDatabaseRootPassword=
 source "${cosysesPath}/prepare-parameters.sh"
 
+# A value for a string in SQL: backslashes and single quotes escaped
+sqlString()
+{
+  local value="${1//\\/\\\\}"
+  echo "${value//\'/\'\'}"
+}
+
 if [[ -z "${databaseRootHost}" ]]; then
   databaseRootHost="localhost"
 fi
@@ -66,7 +73,7 @@ fi
 update=
 for rootHost in "${rootHosts[@]}"; do
   echo "Changing password of user: 'root'@'${rootHost}'"
-  update="${update} ALTER USER 'root'@'${rootHost}' IDENTIFIED BY '${newDatabaseRootPassword}';"
+  update="${update} ALTER USER 'root'@'${rootHost}' IDENTIFIED BY '$(sqlString "${newDatabaseRootPassword}")';"
 done
 update="${update} FLUSH PRIVILEGES;"
 
@@ -77,16 +84,17 @@ export MYSQL_PWD="${newDatabaseRootPassword}"
 echo "Checking new password"
 mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "SELECT 1;" > /dev/null
 
-currentPasswordLine="export MYSQL_PWD=\"${databaseRootPassword}\""
-newPasswordLine="export MYSQL_PWD=\"${newDatabaseRootPassword}\""
+# The start and stop scripts of the container installation export the password (quoted for the shell since 1.145.3,
+# in double quotes before), every such line is replaced
+newPasswordLine="export MYSQL_PWD=$(printf '%q' "${newDatabaseRootPassword}")"
 scriptFiles=( /usr/local/bin/mysql.sh /usr/local/lib/stop/10-mysql.sh )
 for scriptFile in "${scriptFiles[@]}"; do
-  if [[ -f "${scriptFile}" ]] && grep -qF "${currentPasswordLine}" "${scriptFile}"; then
+  if [[ -f "${scriptFile}" ]] && grep -q '^[[:space:]]*export MYSQL_PWD=' "${scriptFile}"; then
     echo "Updating password in script: ${scriptFile}"
     scriptLines=()
     while IFS= read -r scriptLine || [[ -n "${scriptLine}" ]]; do
-      if [[ "${scriptLine}" == *"${currentPasswordLine}" ]]; then
-        scriptLine="${scriptLine%"${currentPasswordLine}"}${newPasswordLine}"
+      if [[ "${scriptLine}" =~ ^([[:space:]]*)export\ MYSQL_PWD= ]]; then
+        scriptLine="${BASH_REMATCH[1]}${newPasswordLine}"
       fi
       scriptLines+=( "${scriptLine}" )
     done < "${scriptFile}"

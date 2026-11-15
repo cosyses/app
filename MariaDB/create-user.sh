@@ -57,6 +57,13 @@ createInitialDatabase=
 keepExisting=
 source "${cosysesPath}/prepare-parameters.sh"
 
+# A value for a string in SQL: backslashes and single quotes escaped
+sqlString()
+{
+  local value="${1//\\/\\\\}"
+  echo "${value//\'/\'\'}"
+}
+
 if [[ -z "${databaseHost}" ]] || [[ "${databaseHost}" == "localhost" ]]; then
   databaseHost="127.0.0.1"
 fi
@@ -123,7 +130,7 @@ for userHost in "${userHosts[@]}"; do
     echo "Keeping existing user: ${userName}"
   else
     echo "Adding user: ${userName}"
-    mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
+    mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '$(sqlString "${databasePassword}")';"
   fi
 done
 

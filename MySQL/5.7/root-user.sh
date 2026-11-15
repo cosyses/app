@@ -28,6 +28,13 @@ databaseRootPort=
 databaseRootPassword=
 source "${cosysesPath}/prepare-parameters.sh"
 
+# A value for a string in SQL: backslashes and single quotes escaped
+sqlString()
+{
+  local value="${1//\\/\\\\}"
+  echo "${value//\'/\'\'}"
+}
+
 if [[ -z "${databaseRootHost}" ]]; then
   databaseRootHost="localhost"
 fi
@@ -55,13 +62,13 @@ rootUserNames=( "'root'@'%'" "'root'@'127.0.0.1'" "'root'@'localhost'" )
 
 for rootUserName in "${rootUserNames[@]}"; do
   echo "Granting super rights to user: ${rootUserName}"
-  mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT USAGE ON *.* TO ${rootUserName} IDENTIFIED BY '${databaseRootPassword}';";
+  mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT USAGE ON *.* TO ${rootUserName} IDENTIFIED BY '$(sqlString "${databaseRootPassword}")';";
 
   echo "Granting all privileges to user: ${rootUserName}"
   mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "GRANT ALL PRIVILEGES ON *.* TO ${rootUserName} WITH GRANT OPTION;"
 
   echo "Allowing login with password to user: ${rootUserName}"
-  mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "ALTER USER ${rootUserName} IDENTIFIED WITH mysql_native_password BY '${databaseRootPassword}';"
+  mysql -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "ALTER USER ${rootUserName} IDENTIFIED WITH mysql_native_password BY '$(sqlString "${databaseRootPassword}")';"
 done
 
 echo "Flushing privileges"

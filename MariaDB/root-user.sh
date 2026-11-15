@@ -28,6 +28,13 @@ databaseRootPort=
 databaseRootPassword=
 source "${cosysesPath}/prepare-parameters.sh"
 
+# A value for a string in SQL: backslashes and single quotes escaped
+sqlString()
+{
+  local value="${1//\\/\\\\}"
+  echo "${value//\'/\'\'}"
+}
+
 if [[ -z "${databaseRootHost}" ]]; then
   databaseRootHost="localhost"
 fi
@@ -47,7 +54,7 @@ if [[ -z "${databaseRootPassword}" ]]; then
 fi
 
 echo "Setting root password"
-mariadb -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD('${databaseRootPassword}'); FLUSH PRIVILEGES;"
+mariadb -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD('$(sqlString "${databaseRootPassword}")'); FLUSH PRIVILEGES;"
 
 export MYSQL_PWD="${databaseRootPassword}"
 
@@ -56,7 +63,7 @@ rootUserNames=( "'root'@'localhost'" "'root'@'127.0.0.1'" "'root'@'%'" )
 for rootUserName in "${rootUserNames[@]}"; do
   if [[ "${rootUserName}" != "'root'@'localhost'" ]]; then
     echo "Create user: ${rootUserName}"
-    mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "CREATE USER ${rootUserName} IDENTIFIED BY '${databaseRootPassword}';";
+    mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -e "CREATE USER ${rootUserName} IDENTIFIED BY '$(sqlString "${databaseRootPassword}")';";
   fi
 
   echo "Granting super rights to user: ${rootUserName}"

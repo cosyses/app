@@ -34,6 +34,13 @@ databaseRootPassword=
 newDatabaseRootPassword=
 source "${cosysesPath}/prepare-parameters.sh"
 
+# A value for a string in SQL: backslashes and single quotes escaped
+sqlString()
+{
+  local value="${1//\\/\\\\}"
+  echo "${value//\'/\'\'}"
+}
+
 if [[ -z "${databaseRootHost}" ]]; then
   databaseRootHost="localhost"
 fi
@@ -68,9 +75,9 @@ for rootHost in "${rootHosts[@]}"; do
   echo "Changing password of user: 'root'@'${rootHost}'"
   # SET PASSWORD fails for 'root'@'localhost', which authenticates via unix_socket or the password since MariaDB 10.4
   if mariadb -h"${databaseRootHost}" -P"${databaseRootPort}" -u root -N -B -e "SHOW CREATE USER 'root'@'${rootHost}';" | grep -q "unix_socket"; then
-    update="${update} ALTER USER 'root'@'${rootHost}' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD('${newDatabaseRootPassword}');"
+    update="${update} ALTER USER 'root'@'${rootHost}' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD('$(sqlString "${newDatabaseRootPassword}")');"
   else
-    update="${update} ALTER USER 'root'@'${rootHost}' IDENTIFIED BY '${newDatabaseRootPassword}';"
+    update="${update} ALTER USER 'root'@'${rootHost}' IDENTIFIED BY '$(sqlString "${newDatabaseRootPassword}")';"
   fi
 done
 update="${update} FLUSH PRIVILEGES;"

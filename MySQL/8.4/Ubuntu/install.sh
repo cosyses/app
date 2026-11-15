@@ -131,7 +131,7 @@ if [[ -f /.dockerenv ]]; then
 trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
 stop() {
   echo "Stopping MySQL"
-  export MYSQL_PWD="${databaseRootPassword}"
+  export MYSQL_PWD=$(printf '%q' "${databaseRootPassword}")
   mysqladmin shutdown
   exit
 }
@@ -164,7 +164,7 @@ EOF
     cat <<EOF > /usr/local/lib/stop/10-mysql.sh
 #!/usr/bin/env bash
 echo "Stopping MySQL"
-export MYSQL_PWD="${databaseRootPassword}"
+export MYSQL_PWD=$(printf '%q' "${databaseRootPassword}")
 mysqladmin shutdown
 EOF
     chmod +x /usr/local/lib/stop/10-mysql.sh
