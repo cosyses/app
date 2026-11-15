@@ -19,6 +19,7 @@ OPTIONS:
   --reset             Drop current database and re-create it (yes/no), default: no
   --tempDir           Path to temp directory, default: /tmp/mysql
   --removeFile        Remove import file after import (yes/no), default: no
+  --onlyIfEmpty       Skip the import if the database already has tables (yes/no), default: no
 
 Example: ${scriptName} --databaseUser magento --databasePassword magento --databaseName magento --importFile import.sql
 EOF
@@ -39,6 +40,7 @@ importFile=
 reset=
 tempDir=
 removeFile=
+onlyIfEmpty=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${databaseHost}" ]] || [[ "${databaseHost}" == "localhost" ]]; then
@@ -75,6 +77,18 @@ fi
 
 if [[ -z "${reset}" ]]; then
   reset="no"
+fi
+
+if [[ -z "${onlyIfEmpty}" ]]; then
+  onlyIfEmpty="no"
+fi
+
+if [[ "${onlyIfEmpty}" == "yes" ]]; then
+  tableCount=$(MYSQL_PWD="${databasePassword}" mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${databaseName}';")
+  if [[ "${tableCount}" -gt 0 ]]; then
+    echo "Skipping import into database: ${databaseName} because it already has ${tableCount} tables"
+    exit 0
+  fi
 fi
 
 if [[ -z "${tempDir}" ]]; then

@@ -15,6 +15,7 @@ OPTIONS:
   --databaseUser          Name of the database user to use for creation
   --databasePassword      Database password of the user to use for creation
   --databaseName          Database name to grant the user rights to
+  --keepExisting          Keep an existing database instead of dropping and re-creating it (yes/no), default: no
 
 Example: ${scriptName} --databaseUser user --databasePassword password --databaseName database
 EOF
@@ -31,6 +32,7 @@ databasePort=
 databaseUser=
 databasePassword=
 databaseName=
+keepExisting=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${databaseHost}" ]] || [[ "${databaseHost}" == "localhost" ]]; then
@@ -59,10 +61,23 @@ if [[ -z "${databaseName}" ]]; then
   exit 1
 fi
 
+if [[ -z "${keepExisting}" ]]; then
+  keepExisting="no"
+fi
+
 export MYSQL_PWD="${databasePassword}"
 
-echo "Dropping database: ${databaseName}"
-mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "DROP DATABASE IF EXISTS ${databaseName};"
+databaseExists=
+if [[ "${keepExisting}" == "yes" ]]; then
+  databaseExists=$(mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -N -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '${databaseName}';")
+fi
 
-echo "Creating database: ${databaseName}"
-mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "CREATE DATABASE ${databaseName} CHARACTER SET utf8 COLLATE utf8_general_ci;";
+if [[ -n "${databaseExists}" ]]; then
+  echo "Keeping existing database: ${databaseName}"
+else
+  echo "Dropping database: ${databaseName}"
+  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "DROP DATABASE IF EXISTS ${databaseName};"
+
+  echo "Creating database: ${databaseName}"
+  mysql -h"${databaseHost}" -P"${databasePort}" -u"${databaseUser}" -e "CREATE DATABASE ${databaseName} CHARACTER SET utf8 COLLATE utf8_general_ci;";
+fi
