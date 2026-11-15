@@ -12,8 +12,11 @@ while [[ "$#" -gt 0 ]]; do
   if [[ "${parameter:0:2}" == "--" ]] || [[ "${parameter}" =~ ^-[[:alpha:]][[:space:]]+ ]] || [[ "${parameter}" =~ ^-\?$ ]]; then
     if [[ "${parameter}" =~ ^--[[:alpha:]]+[[:space:]]+ ]]; then
       parameter="${parameter:2}"
-      prepareParametersKey=$(echo "${parameter}" | grep -oP '^[[:alpha:]]+(?=\s)' | tr -d "\n")
-      prepareParametersValue=$(echo "${parameter:${#prepareParametersKey}}" | xargs)
+      # The value is everything after the key and the blanks behind it, kept as it is
+      [[ "${parameter}" =~ ^([[:alpha:]]+)[[:space:]]+(.*)$ ]]
+      prepareParametersKey="${BASH_REMATCH[1]}"
+      prepareParametersValue="${BASH_REMATCH[2]}"
+      prepareParametersValue="${prepareParametersValue%"${prepareParametersValue##*[![:space:]]}"}"
       # shellcheck disable=SC2034
       prepareParameters["${prepareParametersKey}"]="${prepareParametersValue}"
       # printf -v instead of eval, so that $, backticks and quotes in values are kept as they are

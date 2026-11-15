@@ -154,11 +154,9 @@ if [[ -z "${rootPathFallback}" ]]; then
   rootPathFallback="/index.php?\$args"
 fi
 
-# The default is escaped like a given path: each cosyses call strips one level of backslashes (but keeps $)
 if [[ -z "${phpPath}" ]]; then
   phpPath="\.php\$"
 fi
-phpPath="${phpPath//\\/\\\\}"
 
 if [[ -z "${basicAuthUserName}" ]]; then
   echo "No basic auth user name specified!"

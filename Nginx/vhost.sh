@@ -195,12 +195,9 @@ if [[ -z "${fpmIndexScript}" ]]; then
   fpmIndexScript="index.php"
 fi
 
-# Each cosyses call strips one level of backslashes (the options are passed on as "--key value" and read with xargs),
-# but keeps $ (prepare-parameters.sh does not evaluate the values), so only backslashes are escaped
+# The paths are passed on to the vhost scripts as they are: cosyses keeps $ and backslashes in option values
 if [[ -z "${rootPath}" ]]; then
   rootPath="/"
-else
-  rootPath="${rootPath//\\/\\\\}"
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
@@ -210,14 +207,10 @@ if [[ -z "${rootPathIndex}" ]]; then
   else
     rootPathIndex="/index.php"
   fi
-else
-  rootPathIndex="${rootPathIndex//\\/\\\\}"
 fi
 
 if [[ -z "${rootPathFallback}" ]]; then
   rootPathFallback="/index.php?\$args"
-else
-  rootPathFallback="${rootPathFallback//\\/\\\\}"
 fi
 
 if [[ -z "${phpPath}" ]]; then
@@ -227,7 +220,6 @@ if [[ -z "${phpPath}" ]]; then
     phpPath="\.php\$"
   fi
 fi
-phpPath="${phpPath//\\/\\\\}"
 
 if [[ -z "${application}" ]]; then
   application="no"

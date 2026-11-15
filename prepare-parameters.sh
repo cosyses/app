@@ -14,8 +14,12 @@ while [[ "$#" -gt 0 ]]; do
       elif [[ "${parameter}" =~ ^-[[:alpha:]]+[[:space:]]+ ]]; then
         parameter="${parameter:1}"
       fi
-      prepareParametersKey=$(echo "${parameter}" | grep -oP '^[[:alpha:]]+(?=\s)' | tr -d "\n")
-      prepareParametersValue=$(echo "${parameter:${#prepareParametersKey}}" | xargs)
+      # "--key value" as one argument (how install.sh passes the options on to the script): the value is everything
+      # after the key and the blanks behind it, kept as it is (no quote or backslash processing as xargs did)
+      [[ "${parameter}" =~ ^([[:alpha:]]+)[[:space:]]+(.*)$ ]]
+      prepareParametersKey="${BASH_REMATCH[1]}"
+      prepareParametersValue="${BASH_REMATCH[2]}"
+      prepareParametersValue="${prepareParametersValue%"${prepareParametersValue##*[![:space:]]}"}"
       # shellcheck disable=SC2034
       prepareParameters["${prepareParametersKey}"]="${prepareParametersValue}"
       # printf -v instead of eval, so that $, backticks and quotes in values (e.g. passwords) are kept as they are
