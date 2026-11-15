@@ -24,6 +24,7 @@ OPTIONS:
   --repositoryUrl    URL of the Composer repository, default: Packagist
   --noScripts        Do not run the scripts of the package (yes/no), default: no
   --removeVcs        Remove the VCS history of the package (yes/no), default: no
+  --securityBlocking Refuse package versions with security advisories (yes/no, Composer 2.9+), default: yes
   --requirePackages  Comma separated packages to add, with optional constraint, for example:
                      laravel/framework:~13.0,symfony/twig-bundle
   --binaries         Comma separated files relative to the project to make executable, for example: bin/console
@@ -45,6 +46,7 @@ appPath=
 repositoryUrl=
 noScripts=
 removeVcs=
+securityBlocking=
 requirePackages=
 binaries=
 user=
@@ -62,6 +64,10 @@ fi
 
 if [[ -z "${removeVcs}" ]]; then
   removeVcs="no"
+fi
+
+if [[ -z "${securityBlocking}" ]]; then
+  securityBlocking="yes"
 fi
 
 if [[ -z "${user}" ]]; then
@@ -114,6 +120,11 @@ else
   if [[ "${removeVcs}" == "yes" ]]; then
     createArguments+=( --remove-vcs )
   fi
+  requireArguments=( require --working-dir "${projectPath}" --no-interaction )
+  if [[ "${securityBlocking}" == "no" ]]; then
+    createArguments+=( --no-security-blocking )
+    requireArguments+=( --no-security-blocking )
+  fi
   if [[ -n "${packageVersion}" ]]; then
     createArguments+=( "${packageName}=${packageVersion}" )
   else
@@ -127,7 +138,7 @@ else
   if [[ -n "${requirePackages}" ]]; then
     IFS=',' read -r -a requirePackageList <<< "${requirePackages}"
     echo "Adding packages: ${requirePackageList[*]}"
-    runComposer require --working-dir "${projectPath}" --no-interaction "${requirePackageList[@]}" 2>&1
+    runComposer "${requireArguments[@]}" "${requirePackageList[@]}" 2>&1
   fi
 
   echo "Copying project to: ${appPath}"
