@@ -195,25 +195,24 @@ if [[ -z "${fpmIndexScript}" ]]; then
   fpmIndexScript="index.php"
 fi
 
+# Each cosyses call strips one level of backslashes (the options are passed on as "--key value" and read with xargs),
+# but keeps $ (prepare-parameters.sh does not evaluate the values), so only backslashes are escaped
 if [[ -z "${rootPath}" ]]; then
   rootPath="/"
 else
   rootPath="${rootPath//\\/\\\\}"
-  rootPath="${rootPath//$/\\\\$}"
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
   rootPathIndex="/index.php"
 else
   rootPathIndex="${rootPathIndex//\\/\\\\}"
-  rootPathIndex="${rootPathIndex//$/\\\\$}"
 fi
 
 if [[ -z "${rootPathFallback}" ]]; then
-  rootPathFallback="/index.php?\\\\\$args"
+  rootPathFallback="/index.php?\$args"
 else
   rootPathFallback="${rootPathFallback//\\/\\\\}"
-  rootPathFallback="${rootPathFallback//$/\\\\$}"
 fi
 
 if [[ -z "${phpPath}" ]]; then
@@ -223,9 +222,7 @@ if [[ -z "${phpPath}" ]]; then
     phpPath="\.php\$"
   fi
 fi
-# The default is escaped like a given path: each cosyses call strips one level of backslashes
 phpPath="${phpPath//\\/\\\\}"
-phpPath="${phpPath//$/\\\\$}"
 
 if [[ -z "${application}" ]]; then
   application="no"
