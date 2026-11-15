@@ -16,8 +16,8 @@ while [[ "$#" -gt 0 ]]; do
       prepareParametersValue=$(echo "${parameter:${#prepareParametersKey}}" | xargs)
       # shellcheck disable=SC2034
       prepareParameters["${prepareParametersKey}"]="${prepareParametersValue}"
-      #echo eval "${prepareParametersKey}=\"${prepareParametersValue}\""
-      eval "${prepareParametersKey}=\"${prepareParametersValue}\""
+      # printf -v instead of eval, so that $, backticks and quotes in values are kept as they are
+      printf -v "${prepareParametersKey}" '%s' "${prepareParametersValue}"
       continue
     fi
     if [[ "${parameter:0:2}" == "--" ]]; then
@@ -42,8 +42,7 @@ while [[ "$#" -gt 0 ]]; do
       shift
       # shellcheck disable=SC2034
       prepareParameters["${prepareParametersKey}"]="${prepareParametersValue}"
-      #echo eval "${prepareParametersKey}=\"${prepareParametersValue}\""
-      eval "${prepareParametersKey}=\"${prepareParametersValue}\""
+      printf -v "${prepareParametersKey}" '%s' "${prepareParametersValue}"
     fi
   else
     unparsedParameters+=("${parameter}")
