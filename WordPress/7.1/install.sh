@@ -20,7 +20,9 @@ OPTIONS:
   --help              Show this message
   --appPath           Directory of the site
   --user              System user who owns the site and runs WP-CLI, default: www-data
-  --appUrl            URL of the site, default: http://localhost
+  --wordpressVersion  Exact version to download, e.g. 7.1.1, default: the latest 7.1 release
+                      Tested: 7.1 releases and 7.0 (PHP 8.4, MariaDB 11.4), older versions are untested
+  --appUrl           URL of the site, default: http://localhost
   --title             Title of the site, default: WordPress
   --locale            Language of the site, default: en_US
   --databaseHost      Database host, default: localhost
@@ -45,6 +47,7 @@ fi
 
 appPath=
 user=
+wordpressVersion=
 appUrl=
 title=
 locale=
@@ -154,11 +157,13 @@ fi
 if [[ -f "${appPath}/wp-includes/version.php" ]]; then
   echo "WordPress is already downloaded to: ${appPath}"
 else
-  # The latest patch release of this version
-  wordpressVersion=$(curl -fsS https://api.wordpress.org/core/version-check/1.7/ | grep -oE '"version":"7\.1(\.[0-9]+)?"' | cut -d'"' -f4 | sort -V | tail -n 1)
   if [[ -z "${wordpressVersion}" ]]; then
-    >&2 echo "Could not determine the latest release of WordPress 7.1"
-    exit 1
+    # The latest patch release of this version
+    wordpressVersion=$(curl -fsS https://api.wordpress.org/core/version-check/1.7/ | grep -oE '"version":"7\.1(\.[0-9]+)?"' | cut -d'"' -f4 | sort -V | tail -n 1)
+    if [[ -z "${wordpressVersion}" ]]; then
+      >&2 echo "Could not determine the latest release of WordPress 7.1"
+      exit 1
+    fi
   fi
 
   echo "Downloading WordPress ${wordpressVersion} with locale: ${locale} to: ${appPath}"
