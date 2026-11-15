@@ -35,7 +35,7 @@ OPTIONS:
   --fpmHostPort               Port of PHP FPM instance, default: 9000
   --fpmIndexScript            Index script of FPM server, default: index.php
   --rootPath                  Path of root, default: /
-  --rootPathIndex             Index of root path, default: /index.php
+  --rootPathIndex             Index of root path, default: /index.php (index.php with application magento)
   --rootPathFallback          Fallback of root path, default: /index.php?\$args
   --phpPath                   Path of PHP, default: \.php$
   --redirectTargetProtocol    Protocol of redirect target, default: https
@@ -204,7 +204,12 @@ else
 fi
 
 if [[ -z "${rootPathIndex}" ]]; then
-  rootPathIndex="/index.php"
+  if [[ "${application}" == "magento" ]]; then
+    # The internal redirect of an absolute index (/index.php) ends in the location that denies other PHP files (403)
+    rootPathIndex="index.php"
+  else
+    rootPathIndex="/index.php"
+  fi
 else
   rootPathIndex="${rootPathIndex//\\/\\\\}"
 fi
