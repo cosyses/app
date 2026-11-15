@@ -5,9 +5,22 @@
   </picture>
 </p>
 
-<p align="center">Reproducible install routines for server software on Ubuntu.</p>
+<p align="center">Reproducible install routines for servers and containers.</p>
 
-Cosyses collects installation and configuration routines that are known to work: Bash scripts for PHP, Nginx, Apache, MySQL, Varnish, Redis, OpenSearch, Node.js and more, each tested for a specific combination of software version and Ubuntu release. Instead of following a different how-to for every server, you run one command and get the same result every time.
+Cosyses collects installation and configuration routines that are known to work: Bash scripts for PHP, Nginx, Apache, MySQL, Varnish, Redis, OpenSearch, Node.js and more, each tested for a specific combination of software version, distribution and release. Instead of following a different how-to for every server, you run one command and get the same result every time.
+
+## Supported distributions
+
+| Distribution | Releases | Routines | Base image |
+|---|---|---|---|
+| Ubuntu | 16.04, 18.04, 20.04, 22.04, 24.04, 26.04 | all applications | `cosyses/ubuntu:<release>` (also `-arm`) |
+| Alpine | 3.23, 3.24 | PHP 8.4 (CLI, FPM, Laravel), Nginx, Node.js 24, Composer, Librsvg, OpenSSH, Tini | `cosyses/alpine:<release>` (also `-arm`) |
+| Debian | 12, 13 | OpenSSH, Tini | `cosyses/debian:<release>` |
+| RHEL (also AlmaLinux, Rocky Linux, CentOS Stream) | 9, 10 | OpenSSH, Tini | `cosyses/rhel:<release>` (from the Red Hat Universal Base Images) |
+| Fedora | 44, 45 | OpenSSH, Tini | `cosyses/fedora:<release>` |
+| openSUSE Leap | 15.6, 16.0 | OpenSSH, Tini | `cosyses/opensuse:<release>` |
+
+Routines outside a distribution directory (for example the Composer and npm based tools) run on every distribution. The base images have Cosyses preinstalled, use Tini as entrypoint, run `cosyses update` on start and are built by the [Anodosys extension](https://github.com/cosyses/anodosys). openSUSE Leap 15.6 has reached its end of life.
 
 ## Installation
 
@@ -15,15 +28,13 @@ Cosyses collects installation and configuration routines that are known to work:
 wget --no-cache -q -O - https://raw.githubusercontent.com/cosyses/app/master/setup.sh | bash
 ```
 
-This downloads the latest release to `/usr/local/lib/cosyses/<version>`, links it as `/usr/local/lib/cosyses/current` and installs the `cosyses` command to `/usr/local/bin`. It also installs the helper commands the scripts use (`install-package`, `add-gpg-repository`, `replace-file-content`, `ensure-user`, …) to `/usr/local/bin`.
+This downloads the latest release to `/usr/local/lib/cosyses/<version>`, links it as `/usr/local/lib/cosyses/current` and installs the `cosyses` command to `/usr/local/bin`. It also installs the helper commands the scripts use (`install-package`, `add-gpg-repository`, `replace-file-content`, `ensure-user`, …) to `/usr/local/bin`, in a version for the package manager of the distribution (apt, apk, dnf or zypper).
 
-On Alpine Linux, which has no bash by default, install it first. Alpine support is a proof of concept for Alpine 3.24, covering PHP 8.4 (CLI, FPM, Laravel extensions), Nginx 1.30, Librsvg 2.62 and Composer:
+The setup needs bash and wget. Alpine has no bash by default, and the Debian and openSUSE images have no wget, so install them first:
 
 ```
 apk add bash && wget -q -O - https://raw.githubusercontent.com/cosyses/app/master/setup.sh | bash
 ```
-
-Cosyses also runs on Debian 12 and 13, RHEL 9 and 10 (and compatible distributions like AlmaLinux and Rocky Linux), Fedora 44 and 45 and openSUSE Leap 15.6 and 16.0, with helper commands for apt, dnf and zypper. So far only OpenSSH and Tini have routines for them (they are what the `cosyses/<distribution>` base images need), plus the routines that work on any distribution. Install `wget` first where it is missing. Scripts for them live below `Debian/<Release>`, `RHEL/<Major>`, `Fedora/<Release>` and `openSUSE/<Release>`.
 
 To install a specific release instead of the latest:
 
@@ -40,7 +51,7 @@ The scripts install packages system-wide, so run them as root on the server or c
 Install an application, optionally in a specific version:
 
 ```
-cosyses Nginx           # latest version available for this Ubuntu release
+cosyses Nginx           # latest version available for this distribution release
 cosyses PHP 8.4         # a specific version
 ```
 
@@ -63,11 +74,11 @@ cosyses PHP 8.4 install.sh --help
 ### Finding applications
 
 ```
-cosyses list            # applications available for this Ubuntu release
+cosyses list            # applications available for this distribution release
 cosyses list PHP        # versions of an application available for this release
 ```
 
-The repository currently covers Apache, Box, Caddy, Claude Code, CodeGraph, CodeSniffer, Composer, ddev, Elasticsearch, GitHub CLI, Go, Graphify, Kubernetes, MagentoServer, MailCatcher, MariaDB, mhsendmail, MongoDB, MySQL, Nginx, Node.js, OpenSearch, OpenSSH, PHP, Python, RabbitMQ, Redis, Ruby, Tini, Valkey, Varnish, WP-CLI and Xdebug, on Ubuntu 16.04 to 26.04. Not every version exists for every release; `cosyses list` shows what works on the current machine.
+The repository currently covers Apache, Box, Caddy, Chromium, Claude Code, CodeGraph, CodeSniffer, Composer, Cron, ddev, Docker, Elasticsearch, ESLint, GitHub CLI, Go, Graphify, Kubernetes, Librsvg, MagentoServer, MailCatcher, MariaDB, mhsendmail, MongoDB, MySQL, Nginx, Node.js, OpenSearch, OpenSSH, PHP, Phpacker, PHPCPD, Python, RabbitMQ, Rector, Redis, Ruby, Tini, Traefik, Valkey, Varnish, WP-CLI and Xdebug. Not every version exists for every release; `cosyses list` shows what works on the current machine, and [cosyses.app](https://www.cosyses.app/tools) lists every routine with its versions and releases.
 
 ### Updating and removing
 
@@ -82,10 +93,13 @@ cosyses update          # install the latest release
 Scripts live in a tree of application, version, distribution and release:
 
 ```
-<Name>/<Version>/Ubuntu/<Release>/install.sh   # e.g. Varnish/7.7/Ubuntu/22.04/install.sh
-<Name>/<Version>/Ubuntu/install.sh             # one script for several releases, listed in a releases file
-<Name>/vhost.sh                                # version-independent scripts at the application root
+<Name>/<Version>/<Distribution>/<Release>/install.sh   # e.g. Varnish/7.7/Ubuntu/22.04/install.sh
+<Name>/<Version>/<Distribution>/install.sh             # one script for several releases, listed in a releases file
+<Name>/<Version>/install.sh                            # one script for every distribution
+<Name>/vhost.sh                                        # version-independent scripts at the application root
 ```
+
+The distribution directories are `Ubuntu`, `Alpine`, `Debian`, `RHEL`, `Fedora` and `openSUSE`. Releases are named like the distribution names them: `24.04`, `3.24`, `16.0`, or the major version for Debian (`12`), RHEL (`9`) and Fedora (`45`).
 
 `cosyses` detects the distribution and release from `/etc/os-release` and picks the most specific script that exists, falling back from the release directory to the version, the distribution and finally the application root. A `releases` file next to a script limits it to the releases listed there, which are the ones it was tested on. Without a version, the highest version that has a matching script is used.
 
@@ -93,13 +107,15 @@ Scripts build on each other: a framework script like `cosyses PHP 8.4 magento.sh
 
 ## Development
 
-Never run the scripts on your development machine. `test.sh` runs them from your working copy in throwaway `cosyses/ubuntu:<release>` Docker containers:
+Never run the scripts on your development machine. `test.sh` runs them from your working copy in throwaway containers of the Cosyses base images (`cosyses/ubuntu:<release>` by default, another distribution with `--distribution`):
 
 ```
-./test.sh Varnish 7.7 22.04                     # one combination
-./test.sh Varnish                               # every version and release
-./test.sh --prepare "PHP 8.4" Composer 2.9      # install dependencies first
-./test.sh --shell Varnish 7.7 22.04             # keep a shell open afterwards
+./test.sh Varnish 7.7 22.04                                 # one combination
+./test.sh Varnish                                           # every version and release
+./test.sh --prepare "PHP 8.4" Composer 2.9                  # install dependencies first
+./test.sh --shell Varnish 7.7 22.04                         # keep a shell open afterwards
+./test.sh --distribution RHEL --release 9,10 OpenSSH 9.9    # another distribution
+./test.sh --arm Tini 0.19 24.04                             # the arm64 images
 ```
 
 It prints a PASS/FAIL summary and writes the full output to `${TMPDIR:-/tmp}/cosyses-test/`. Run `./test.sh --help` for all options.
@@ -108,6 +124,7 @@ When adding or changing a script:
 
 - Put it in the most specific directory it was tested in, and add the release to the `releases` file when a shared script was tested on another release.
 - Versions that only differ in version numbers share an `install-base.sh` and get a small wrapper per version that sets the variables. A change to shared logic must be tested on every version using it.
+- Scripts outside a distribution directory run everywhere, so they may only use the helper commands and tools every distribution has.
 - Check scripts with `shellcheck`, and commit them as executable (`100755`). CI runs both on every push and pull request.
 
 Servers and containers only receive changes through a GitHub release; `./release.sh` tags and publishes the next version.
