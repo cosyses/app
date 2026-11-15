@@ -21,14 +21,16 @@ OPTIONS:
   --applicationScript   Name of script, default: install.sh
   --bindAddress         Bind address, default: 127.0.0.1
   --port                Port, default: 9200
+  --heapSize            Java heap size (-Xms and -Xmx), default: 1g
 
-Example: ${scriptName} --applicationName Elasticsearch --applicationVersion ${applicationVersion} --bindAddress 0.0.0.0 --port 9200
+Example: ${scriptName} --applicationName Elasticsearch --applicationVersion ${applicationVersion} --bindAddress 0.0.0.0 --port 9200 --heapSize 2g
 EOF
 }
 
 helpRequested=
 bindAddress=
 port=
+heapSize=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ "${helpRequested}" == 1 ]]; then
@@ -42,6 +44,15 @@ fi
 
 if [[ -z "${port}" ]] || [[ "${port}" == "-" ]]; then
   port="9200"
+fi
+
+if [[ -z "${heapSize}" ]] || [[ "${heapSize}" == "-" ]]; then
+  heapSize="1g"
+fi
+
+if [[ ! "${heapSize}" =~ ^[0-9]+[kKmMgG]$ ]]; then
+  >&2 echo "Invalid heap size: ${heapSize} (expected e.g. 512m or 2g)"
+  exit 1
 fi
 
 echo "Installing Java 8"
@@ -71,6 +82,12 @@ fi
 
 echo "Setting port to: ${port}"
 replace-file-content /etc/elasticsearch/elasticsearch.yml "http.port: ${port}" "#http.port: 9200" 0
+
+echo "Setting heap size to: ${heapSize}"
+mkdir -p /etc/elasticsearch/jvm.options.d
+printf -- "-Xms%s\n-Xmx%s\n" "${heapSize}" "${heapSize}" > /etc/elasticsearch/jvm.options.d/heap.options
+chown root:elasticsearch /etc/elasticsearch/jvm.options.d/heap.options
+chmod 660 /etc/elasticsearch/jvm.options.d/heap.options
 
 if [[ "${elasticsearchMajorVersion}" -ge 8 ]]; then
   echo "Disabling security"
