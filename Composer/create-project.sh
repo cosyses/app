@@ -27,6 +27,9 @@ OPTIONS:
   --securityBlocking Refuse package versions with security advisories (yes/no, Composer 2.9+), default: yes
   --requirePackages  Comma separated packages to add, with optional constraint, for example:
                      laravel/framework:~13.0,symfony/twig-bundle
+  --requireWithAllDependencies
+                     Allow Composer to update dependencies already locked when adding the packages
+                     (composer require -W, yes/no), default: no
   --binaries         Comma separated files relative to the project to make executable, for example: bin/console
   --user             System user who owns the project and runs Composer, default: the current user
 
@@ -48,6 +51,7 @@ noScripts=
 removeVcs=
 securityBlocking=
 requirePackages=
+requireWithAllDependencies=
 binaries=
 user=
 source "${cosysesPath}/prepare-parameters.sh"
@@ -68,6 +72,10 @@ fi
 
 if [[ -z "${securityBlocking}" ]]; then
   securityBlocking="yes"
+fi
+
+if [[ -z "${requireWithAllDependencies}" ]]; then
+  requireWithAllDependencies="no"
 fi
 
 if [[ -z "${user}" ]]; then
@@ -124,6 +132,9 @@ else
   if [[ "${securityBlocking}" == "no" ]]; then
     createArguments+=( --no-security-blocking )
     requireArguments+=( --no-security-blocking )
+  fi
+  if [[ "${requireWithAllDependencies}" == "yes" ]]; then
+    requireArguments+=( --with-all-dependencies )
   fi
   if [[ -n "${packageVersion}" ]]; then
     createArguments+=( "${packageName}=${packageVersion}" )
