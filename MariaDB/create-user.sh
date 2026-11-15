@@ -20,6 +20,7 @@ OPTIONS:
   --grantSuperRights       Grant user super rights, default: no
   --grantDatabaseRights    Grant rights to database, default: no
   --createInitialDatabase  Create initial database, default: no
+  --keepExisting           Keep an existing user and initial database instead of failing or re-creating them (yes/no), default: no
 
 Example: ${scriptName} --databaseRootPassword secret --databaseUser user --databasePassword password --databaseName database --createInitialDatabase yes
 EOF
@@ -53,6 +54,7 @@ databaseName=
 grantSuperRights=
 grantDatabaseRights=
 createInitialDatabase=
+keepExisting=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${databaseHost}" ]] || [[ "${databaseHost}" == "localhost" ]]; then
@@ -97,6 +99,10 @@ if [[ -z "${createInitialDatabase}" ]]; then
   createInitialDatabase="no"
 fi
 
+if [[ -z "${keepExisting}" ]]; then
+  keepExisting="no"
+fi
+
 if { [[ "${grantDatabaseRights}" == "yes" ]] || [[ "${createInitialDatabase}" == "yes" ]]; } && [[ -z "${databaseName}" ]]; then
   echo "No database name specified!"
   usage
@@ -105,11 +111,20 @@ fi
 
 export MYSQL_PWD="${databaseRootPassword}"
 
-userNames=( "'${databaseUser}'@'%'" "'${databaseUser}'@'127.0.0.1'" "'${databaseUser}'@'localhost'" )
+userHosts=( "%" "127.0.0.1" "localhost" )
 
-for userName in "${userNames[@]}"; do
-  echo "Adding user: ${userName}"
-  mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
+for userHost in "${userHosts[@]}"; do
+  userName="'${databaseUser}'@'${userHost}'"
+  userExists=
+  if [[ "${keepExisting}" == "yes" ]]; then
+    userExists=$(mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -N -e "SELECT User FROM mysql.user WHERE User = '${databaseUser}' AND Host = '${userHost}';")
+  fi
+  if [[ -n "${userExists}" ]]; then
+    echo "Keeping existing user: ${userName}"
+  else
+    echo "Adding user: ${userName}"
+    mariadb -h"${databaseHost}" -P"${databasePort}" -u"${databaseRootUser}" -e "CREATE USER ${userName} IDENTIFIED BY '${databasePassword}';"
+  fi
 done
 
 echo "Flushing privileges"
@@ -150,5 +165,6 @@ if [[ "${createInitialDatabase}" == "yes" ]]; then
     --databasePort "${databasePort}" \
     --databaseUser "${databaseUser}" \
     --databasePassword "${databasePassword}" \
-    --databaseName "${databaseName}"
+    --databaseName "${databaseName}" \
+    --keepExisting "${keepExisting}"
 fi
