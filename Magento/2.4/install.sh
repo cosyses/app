@@ -25,6 +25,7 @@ OPTIONS:
   --magentoEdition     community or enterprise, default: community
   --composerUser       Public key of repo.magento.com (stored with cosyses Composer auth.sh, optional if stored already)
   --composerPassword   Private key of repo.magento.com
+  --securityBlocking   Let Composer refuse package versions with security advisories (yes/no), default: yes
   --hideDeprecations   Hide deprecation messages in app/bootstrap.php (yes/no), default: yes
   --baseUrl            Base URL of the shop, default: https://localhost/
   --adminPath          Path of the admin area, default: admin
@@ -68,6 +69,7 @@ magentoVersion=
 magentoEdition=
 composerUser=
 composerPassword=
+securityBlocking=
 hideDeprecations=
 baseUrl=
 adminPath=
@@ -116,6 +118,10 @@ if [[ "${magentoEdition}" != "community" ]] && [[ "${magentoEdition}" != "enterp
   >&2 echo "Invalid Magento edition: ${magentoEdition}, use community or enterprise"
   usage
   exit 1
+fi
+
+if [[ -z "${securityBlocking}" ]]; then
+  securityBlocking="yes"
 fi
 
 if [[ -z "${hideDeprecations}" ]]; then
@@ -293,6 +299,7 @@ cosyses \
   --repositoryUrl "https://repo.magento.com/" \
   --appPath "${appPath}" \
   --binaries bin/magento \
+  --securityBlocking "${securityBlocking}" \
   --user "${user}"
 
 cd "${appPath}"

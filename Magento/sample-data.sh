@@ -67,6 +67,10 @@ fi
 sampleDataVersion="${magentoVersion%%-p*}"
 
 if [[ ! -x "$(command -v unzip)" ]]; then
+  if [[ "$(id -u)" != 0 ]]; then
+    >&2 echo "Unzip not found and cannot be installed as user: $(whoami), install it first as root (install-package unzip)"
+    exit 1
+  fi
   install-package unzip
 fi
 
