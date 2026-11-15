@@ -12,7 +12,10 @@ cat >&2 << EOF
 Creates a Shopware 6.7 project (shopware/production) in a directory, writes its settings to .env.local and installs
 the shop with an admin user and a storefront sales channel. The database server has to be running and the database
 user has to exist (cosyses MariaDB <version> create-user.sh). PHP (cosyses PHP 8.4 shopware.sh) and Composer have to
-be installed. If the shop is already installed (install.lock), only the settings are written.
+be installed. If the shop is already installed (install.lock), only the settings are written. With --existingDatabase
+yes, the project is attached to a database that already contains a shop (e.g. an imported dump): instead of
+system:install, the migrations are run, the admin user is created or its password is changed and install.lock is
+written.
 
 usage: ${scriptFileName} options
 
@@ -20,8 +23,12 @@ OPTIONS:
   --help              Show this message
   --appPath           Directory of the project
   --user              System user who owns the project and runs the commands, default: www-data
+  --shopwareVersion   Version or constraint of shopware/production for a new project, default: 6.7.*
+                      Tested: 6.7.* and 6.6.10.* (PHP 8.4, MariaDB 11.4), older versions are untested
   --appUrl            URL of the shop and its storefront sales channel, default: http://localhost
   --appEnv            Environment (prod or dev), default: prod
+  --appDebug          Debug mode (yes/no), default: not set, Shopware enables it in dev and disables it in prod
+  --existingDatabase  Attach the project to a database with an existing shop (yes/no), default: no
   --databaseHost      Database host, default: localhost
   --databasePort      Database port, default: 3306
   --databaseName      Database name, default: shopware
@@ -40,7 +47,7 @@ OPTIONS:
   --searchHost        Host of OpenSearch, default: localhost
   --searchPort        Port of OpenSearch, default: 9200
   --searchIndexPrefix Prefix of the search indices, default: sw
-  --cacheType         Cache and session storage (none or redis), default: none
+  --cacheType         Cache and session storage (none, redis or valkey), default: none
   --cacheHost         Host of Redis or Valkey, default: localhost
   --cachePort         Port of Redis or Valkey, default: 6379
   --cacheDatabase     Redis database of the cache, default: 0
@@ -60,8 +67,11 @@ fi
 
 appPath=
 user=
+shopwareVersion=
 appUrl=
 appEnv=
+appDebug=
+existingDatabase=
 databaseHost=
 databasePort=
 databaseName=
@@ -106,8 +116,22 @@ if [[ -z "${appUrl}" ]]; then
   appUrl="http://localhost"
 fi
 
+if [[ -z "${shopwareVersion}" ]]; then
+  shopwareVersion="6.7.*"
+fi
+
 if [[ -z "${appEnv}" ]]; then
   appEnv="prod"
+fi
+
+if [[ -n "${appDebug}" ]] && [[ "${appDebug}" != "yes" ]] && [[ "${appDebug}" != "no" ]]; then
+  >&2 echo "Invalid debug mode: ${appDebug}, use yes or no"
+  usage
+  exit 1
+fi
+
+if [[ -z "${existingDatabase}" ]]; then
+  existingDatabase="no"
 fi
 
 if [[ -z "${databaseHost}" ]]; then
@@ -188,8 +212,8 @@ if [[ -z "${cacheType}" ]]; then
   cacheType="none"
 fi
 
-if [[ "${cacheType}" != "none" ]] && [[ "${cacheType}" != "redis" ]]; then
-  >&2 echo "Invalid cache type: ${cacheType}, use none or redis"
+if [[ "${cacheType}" != "none" ]] && [[ "${cacheType}" != "redis" ]] && [[ "${cacheType}" != "valkey" ]]; then
+  >&2 echo "Invalid cache type: ${cacheType}, use none, redis or valkey"
   usage
   exit 1
 fi
@@ -283,7 +307,7 @@ cosyses \
   --applicationName Composer \
   --applicationScript create-project.sh \
   --packageName shopware/production \
-  --packageVersion "6.7.*" \
+  --packageVersion "${shopwareVersion}" \
   --appPath "${appPath}" \
   --binaries bin/console \
   --securityBlocking "${securityBlocking}" \
@@ -295,6 +319,11 @@ envFile="${appPath}/.env.local"
 echo "Writing settings to: ${envFile}"
 
 setEnvValue "${envFile}" APP_ENV "${appEnv}"
+if [[ "${appDebug}" == "yes" ]]; then
+  setEnvValue "${envFile}" APP_DEBUG 1
+elif [[ "${appDebug}" == "no" ]]; then
+  setEnvValue "${envFile}" APP_DEBUG 0
+fi
 setEnvValue "${envFile}" APP_URL "${appUrl}"
 setEnvValue "${envFile}" DATABASE_URL "mysql://$(urlEncode "${databaseUser}"):$(urlEncode "${databasePassword}")@${databaseHost}:${databasePort}/${databaseName}"
 if [[ -z "$(getEnvValue "${envFile}" APP_SECRET)" ]]; then
@@ -331,7 +360,8 @@ else
   setEnvValue "${envFile}" SHOPWARE_ES_INDEXING_ENABLED 0
 fi
 
-if [[ "${cacheType}" == "redis" ]]; then
+# Valkey speaks the Redis protocol, Shopware connects to both with the redis adapter
+if [[ "${cacheType}" == "redis" ]] || [[ "${cacheType}" == "valkey" ]]; then
   setEnvValue "${envFile}" REDIS_CACHE_DSN "redis://${cacheHost}:${cachePort}/${cacheDatabase}"
   setEnvValue "${envFile}" REDIS_SESSION_DSN "redis://${cacheHost}:${cachePort}/${sessionDatabase}"
 
@@ -353,7 +383,7 @@ fi
 chown "${user}": "${envFile}"
 chmod 0640 "${envFile}"
 
-if [[ -f "${appPath}/install.lock" ]]; then
+if [[ "${existingDatabase}" != "yes" ]] && [[ -f "${appPath}/install.lock" ]]; then
   echo "Shopware is already installed (install.lock exists)"
   runAsUser php bin/console cache:clear --no-interaction
   exit 0
@@ -362,6 +392,40 @@ fi
 if [[ -z "${adminPassword}" ]]; then
   adminPassword=$(php -r 'echo bin2hex(random_bytes(8));')
   echo "Using generated admin password: ${adminPassword}"
+fi
+
+if [[ "${existingDatabase}" == "yes" ]]; then
+  echo "Migrating existing database: ${databaseName}"
+  runAsUser php bin/console database:migrate --all --no-interaction
+
+  # Changing the password fails if the user does not exist
+  if runAsUser php bin/console user:change-password --no-interaction --password "${adminPassword}" "${adminUser}" > /dev/null 2>&1; then
+    echo "Changed password of admin user: ${adminUser}"
+  else
+    echo "Creating admin user: ${adminUser}"
+    runAsUser php bin/console user:create --admin --no-interaction \
+      --password "${adminPassword}" \
+      --firstName "${adminFirstName}" \
+      --lastName "${adminLastName}" \
+      --email "${adminEmail}" \
+      "${adminUser}"
+  fi
+
+  if [[ ! -f "${appPath}/install.lock" ]]; then
+    echo "Writing: ${appPath}/install.lock"
+    runAsUser touch "${appPath}/install.lock"
+  fi
+
+  echo "Compiling themes"
+  runAsUser php bin/console theme:compile --no-interaction
+
+  if [[ "${searchEngine}" == "opensearch" ]]; then
+    echo "Indexing"
+    runAsUser php bin/console es:index --no-queue --no-interaction
+  fi
+
+  runAsUser php bin/console cache:clear --no-interaction
+  exit 0
 fi
 
 installArguments=( --create-database --skip-first-run-wizard --no-interaction --shop-name "${shopName}" --shop-locale "${shopLocale}" --shop-currency "${shopCurrency}" )

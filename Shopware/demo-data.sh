@@ -66,7 +66,13 @@ runAsUser()
   fi
 }
 
-install-package git
+if [[ ! -x "$(command -v git)" ]]; then
+  if [[ "$(id -u)" != 0 ]]; then
+    >&2 echo "Git not found and cannot be installed as user: $(whoami), install it first as root (install-package git)"
+    exit 1
+  fi
+  install-package git
+fi
 
 cd "${appPath}"
 
