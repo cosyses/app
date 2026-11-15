@@ -13,14 +13,14 @@ Cosyses collects installation and configuration routines that are known to work:
 
 | Distribution | Releases | Routines | Base image |
 |---|---|---|---|
-| Ubuntu | 16.04, 18.04, 20.04, 22.04, 24.04, 26.04 | all applications | `cosyses/ubuntu:<release>` (also `-arm`) |
+| Ubuntu | 16.04, 18.04, 20.04, 22.04, 24.04, 26.04 | all applications | `cosyses/ubuntu:<release>` (`-arm` for 20.04, 22.04, 24.04) |
 | Alpine | 3.23, 3.24 | PHP 8.4 (CLI, FPM, Laravel), Nginx, Node.js 24, Composer, Librsvg, OpenSSH, Tini | `cosyses/alpine:<release>` (also `-arm`) |
 | Debian | 12, 13 | OpenSSH, Tini | `cosyses/debian:<release>` (also `-arm`) |
 | RHEL (also AlmaLinux, Rocky Linux, CentOS Stream) | 9, 10 | OpenSSH, Tini | `cosyses/rhel:<release>` (also `-arm`, from the Red Hat Universal Base Images) |
 | Fedora | 44, 45 | OpenSSH, Tini | `cosyses/fedora:<release>` (also `-arm`) |
 | openSUSE Leap | 15.6, 16.0 | OpenSSH, Tini | `cosyses/opensuse:<release>` (also `-arm`) |
 
-Routines outside a distribution directory (for example the Composer and npm based tools) run on every distribution. The base images have Cosyses preinstalled, use Tini as entrypoint, run `cosyses update` on start and are built by the [Anodosys extension](https://github.com/cosyses/anodosys). openSUSE Leap 15.6 has reached its end of life.
+The tags without suffix are amd64 images; the `-arm` tags (e.g. `cosyses/debian:13-arm`) are arm64 images for hosts like a Raspberry Pi or AWS Graviton. Routines outside a distribution directory (for example the Composer and npm based tools) run on every distribution. The base images have Cosyses preinstalled, use Tini as entrypoint, run `cosyses update` on start and are built by the [Anodosys extension](https://github.com/cosyses/anodosys). openSUSE Leap 15.6 has reached its end of life.
 
 ## Installation
 
