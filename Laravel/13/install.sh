@@ -20,7 +20,10 @@ OPTIONS:
   --help                Show this message
   --appPath             Directory of the project
   --user                System user who owns the project and runs the commands, default: www-data
-  --appName             Name of the application, default: Laravel
+  --laravelVersion      Version or constraint of laravel/framework for a new project, default: ^13.0
+                        The skeleton laravel/laravel is created with <major>.* of it.
+                        Tested: ^13.0 and ^12.0 (PHP 8.4), older versions are untested
+  --appName            Name of the application, default: Laravel
   --appUrl              URL of the application, default: http://localhost
   --appEnv              Environment, default: production
   --appDebug            Debug mode (true or false), default: false
@@ -53,6 +56,7 @@ fi
 
 appPath=
 user=
+laravelVersion=
 appName=
 appUrl=
 appEnv=
@@ -83,6 +87,18 @@ fi
 
 if [[ -z "${user}" ]]; then
   user="www-data"
+fi
+
+if [[ -z "${laravelVersion}" ]]; then
+  laravelVersion="^13.0"
+fi
+
+# The skeleton has the same major version as the framework
+laravelMajorVersion=$(echo "${laravelVersion}" | grep -oE '[0-9]+' | head -n 1)
+if [[ -z "${laravelMajorVersion}" ]]; then
+  >&2 echo "Invalid Laravel version: ${laravelVersion}"
+  usage
+  exit 1
 fi
 
 if [[ -z "${appName}" ]]; then
@@ -237,8 +253,8 @@ cosyses \
   --applicationName Composer \
   --applicationScript create-project.sh \
   --packageName laravel/laravel \
-  --packageVersion "13.*" \
-  --requirePackages "laravel/framework:^13.0" \
+  --packageVersion "${laravelMajorVersion}.*" \
+  --requirePackages "laravel/framework:${laravelVersion}" \
   --noScripts yes \
   --removeVcs yes \
   --appPath "${appPath}" \
