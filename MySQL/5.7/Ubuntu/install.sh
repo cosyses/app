@@ -103,7 +103,12 @@ sed -i "s/bind-address.*/bind-address = ${bindAddress}/g" /etc/mysql/mysql.conf.
 
 if [[ -f /.dockerenv ]]; then
   echo "Stopping MySQL"
-  kill "$(cat /var/run/mysqld/mysqld.pid)"
+  mysqlPid=$(cat /var/run/mysqld/mysqld.pid)
+  kill "${mysqlPid}"
+  # Wait until the server has ended, so that a following start does not find the data directory locked
+  while kill -0 "${mysqlPid}" 2>/dev/null; do
+    sleep 1
+  done
 
   echo "Creating start script at: /usr/local/bin/mysql.sh"
   cat <<EOF > /usr/local/bin/mysql.sh
