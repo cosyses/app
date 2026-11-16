@@ -48,7 +48,12 @@ phpVersion=$(php -v 2>/dev/null | grep --only-matching --perl-regexp "(PHP )\d+\
 
 configurationPath="/etc/php/${phpVersion}/mods-available"
 
+# Alpine and openSUSE have one directory of additional configuration files, which the CLI and FPM share
 if [[ ! -d "${configurationPath}" ]]; then
+  configurationPath=$(php -r 'echo PHP_CONFIG_FILE_SCAN_DIR;' 2>/dev/null)
+fi
+
+if [[ -z "${configurationPath}" ]] || [[ ! -d "${configurationPath}" ]]; then
   >&2 echo "Unsupported PHP version: ${phpVersion}"
   exit 1
 fi
