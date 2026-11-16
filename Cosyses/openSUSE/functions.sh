@@ -16,7 +16,7 @@ installFunctions()
 }
 
 # The helpers of these groups only use bash and common tools, so openSUSE uses the ones of Ubuntu
-sharedGroups=( docker file host npm php pip ruby ssh user version )
+sharedGroups=( docker file host npm php pip ruby ssh ssl user version )
 for sharedGroup in "${sharedGroups[@]}"; do
   installFunctions "${currentPath}/../Ubuntu/functions/${sharedGroup}"
 done
