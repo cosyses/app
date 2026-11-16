@@ -27,16 +27,9 @@ if [[ -z "${cosysesPath}" ]]; then
   exit 1
 fi
 
-# Set by the version specific install.sh which sources this script
-if [[ -z "${cronieVersion}" ]]; then
-  >&2 echo "No cronie version specified!"
-  echo ""
-  exit 1
-fi
-
 source "${cosysesPath}/prepare-parameters.sh"
 
-install-package cronie "${cronieVersion}"
+install-package cronie
 # pgrep and pkill (busybox has them on Alpine)
 if [[ ! -x "$(command -v pgrep)" ]]; then
   install-package procps
