@@ -14,6 +14,9 @@ if [[ "${composerPhpCurl}" == 1 ]]; then
   if [[ -x "$(command -v apk)" ]]; then
     # Alpine names the PHP packages without the dot, e.g. php84-curl
     install-package "php${phpVersion//./}-curl"
+  elif [[ -x "$(command -v dnf)" ]]; then
+    # RHEL and Fedora have the curl extension in php-common
+    install-package php-common
   else
     install-package "php${phpVersion}-curl"
   fi

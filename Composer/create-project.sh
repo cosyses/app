@@ -91,7 +91,8 @@ fi
 runComposer()
 {
   if [[ "${user}" != "$(whoami)" ]]; then
-    sudo -H -u "${user}" composer "$@"
+    # sudo of RHEL, Fedora and openSUSE has no /usr/local/bin in its secure_path
+    sudo -H -u "${user}" "$(command -v composer)" "$@"
   else
     COMPOSER_ALLOW_SUPERUSER=1 composer "$@"
   fi
