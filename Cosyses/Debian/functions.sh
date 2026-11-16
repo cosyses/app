@@ -18,6 +18,9 @@ installFunctions()
 # Debian uses apt like Ubuntu, so it uses the helpers of Ubuntu, with keys in /etc/apt/keyrings as on Ubuntu 22.04
 installFunctions "${currentPath}/../Ubuntu/functions"
 installFunctions "${currentPath}/../Ubuntu/22.04/functions"
+# Debian versions of single helpers (Debian 13 has no software-properties-common, which add-gpg-repository of Ubuntu
+# installs for add-apt-repository)
+installFunctions "${currentPath}/functions"
 
 if [[ -n "${release}" ]] && [[ -d "${currentPath}/${release}/functions" ]]; then
   installFunctions "${currentPath}/${release}/functions"
