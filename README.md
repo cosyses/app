@@ -7,18 +7,20 @@
 
 <p align="center">Reproducible install routines for servers and containers.</p>
 
-Cosyses collects installation and configuration routines that are known to work: Bash scripts for PHP, Nginx, Apache, MySQL, Varnish, Redis, OpenSearch, Node.js and more, each tested for a specific combination of software version, distribution and release. Instead of following a different how-to for every server, you run one command and get the same result every time.
+Cosyses collects installation and configuration routines that are known to work: Bash scripts for PHP, Nginx, Apache, MySQL, Varnish, Redis, OpenSearch, Node.js and more, each tested for a specific combination of software version, distribution and release, on Ubuntu, Debian, RHEL, Fedora, openSUSE and Alpine. Instead of following a different how-to for every server, you run one command and get the same result every time.
 
 ## Supported distributions
 
 | Distribution | Releases | Routines | Base image |
 |---|---|---|---|
 | Ubuntu | 16.04, 18.04, 20.04, 22.04, 24.04, 26.04 | all applications | `cosyses/ubuntu:<release>` (`-arm` for 20.04, 22.04, 24.04) |
-| Alpine | 3.23, 3.24 | PHP 8.4 (CLI, FPM, Laravel), Nginx, Node.js 24, Composer, Librsvg, OpenSSH, Tini | `cosyses/alpine:<release>` (also `-arm`) |
-| Debian | 12, 13 | OpenSSH, Tini | `cosyses/debian:<release>` (also `-arm`) |
-| RHEL (also AlmaLinux, Rocky Linux, CentOS Stream) | 9, 10 | OpenSSH, Tini | `cosyses/rhel:<release>` (also `-arm`, from the Red Hat Universal Base Images) |
-| Fedora | 44, 45 | OpenSSH, Tini | `cosyses/fedora:<release>` (also `-arm`) |
-| openSUSE Leap | 15.6, 16.0 | OpenSSH, Tini | `cosyses/opensuse:<release>` (also `-arm`) |
+| Debian | 12, 13 | Nginx 1.28, PHP 8.4 (CLI, FPM, Laravel, Xdebug, mhsendmail), Node.js 24.13, Redis 7.2, Cron, Ruby, MailCatcher, MySQL 8.4, Librsvg, OpenSSH, Tini | `cosyses/debian:<release>` (also `-arm`) |
+| RHEL (also AlmaLinux, Rocky Linux, CentOS Stream) | 9, 10 | Nginx 1.28, PHP 8.4 (CLI, FPM, Laravel, Xdebug, mhsendmail), Node.js 24.13, Redis 7.2, Cron, Ruby, MailCatcher, MySQL 8.4, OpenSSH, Tini | `cosyses/rhel:<release>` (also `-arm`, from the Red Hat Universal Base Images) |
+| Fedora | 44, 45 | Nginx 1.28, PHP 8.4 (CLI, FPM, Laravel, Xdebug, mhsendmail), Node.js 24.13, Redis 7.2, Cron, Ruby, MailCatcher, MySQL 8.4, Librsvg, OpenSSH, Tini | `cosyses/fedora:<release>` (also `-arm`) |
+| openSUSE Leap | 15.6, 16.0 | Nginx 1.28, PHP 8.4 (CLI, FPM, Laravel, Xdebug, mhsendmail), Node.js 24.13, Redis 7.2, Cron, Ruby, MailCatcher, MySQL 8.4, Librsvg, OpenSSH, Tini | `cosyses/opensuse:<release>` (also `-arm`) |
+| Alpine | 3.23, 3.24 | Nginx 1.28, PHP 8.4 (CLI, FPM, Laravel, Xdebug, mhsendmail), Node.js 24.13, Redis 7.2, Cron, Ruby, MailCatcher, Librsvg, OpenSSH, Tini (no MySQL: Oracle builds MySQL only for glibc) | `cosyses/alpine:<release>` (also `-arm`) |
+
+Beyond Ubuntu, every distribution covers the stack of a typical PHP web application (the web server, PHP with the Laravel modules, a database, a cache, Node.js for asset builds, cron and a mail catcher), tested together by building and running a Laravel application on each release. Versions follow what a distribution can provide: Librsvg and Ruby come from the distribution, MailCatcher 0.6 needs Ruby 3.1 or older (newer releases get 0.10 or 0.11), and the UBI based RHEL images have no `rsvg-convert`.
 
 The tags without suffix are amd64 images; the `-arm` tags (e.g. `cosyses/debian:13-arm`) are arm64 images for hosts like a Raspberry Pi or AWS Graviton. Routines outside a distribution directory (for example the Composer and npm based tools) run on every distribution. The base images have Cosyses preinstalled, use Tini as entrypoint, run `cosyses update` on start and are built by the [Anodosys extension](https://github.com/cosyses/anodosys). openSUSE Leap 15.6 has reached its end of life.
 
