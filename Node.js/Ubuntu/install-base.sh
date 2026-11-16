@@ -35,7 +35,14 @@ if [[ -n "${nodejsBuildVersion}" ]]; then
   tar xfz "node-v${nodejsBuildVersion}.tar.gz"
   cd "node-v${nodejsBuildVersion}"
   ./configure
-  make -j"$(nproc)"
+  # One compile job per CPU can take more memory than available, so allow one job per 2 GB of available memory
+  buildJobs=$(nproc)
+  memoryJobs=$(awk '/^MemAvailable:/ {jobs = int($2 / 2097152); print (jobs < 1) ? 1 : jobs}' /proc/meminfo)
+  if [[ -n "${memoryJobs}" ]] && [[ "${memoryJobs}" -lt "${buildJobs}" ]]; then
+    buildJobs="${memoryJobs}"
+  fi
+  echo "Building with ${buildJobs} jobs"
+  make -j"${buildJobs}"
   make install
   cd /
   rm -rf /tmp/node.js
