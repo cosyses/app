@@ -2,4 +2,4 @@
 
 redisVersion="8.0.6"
 
-source "${cosysesPath}/Redis/Ubuntu/22.04/install-base.sh"
+source "${cosysesPath}/Redis/Ubuntu/install-base.sh"

@@ -59,15 +59,8 @@ if [[ ! -d /usr/local/source/redis/redis-${redisVersion} ]]; then
   cd redis-${redisVersion}
   make
   make install
-  sed -i '76s/^/#/' utils/install_server.sh
-  sed -i '77s/^/#/' utils/install_server.sh
-  sed -i '78s/^/#/' utils/install_server.sh
-  sed -i '79s/^/#/' utils/install_server.sh
-  sed -i '80s/^/#/' utils/install_server.sh
-  sed -i '81s/^/#/' utils/install_server.sh
-  sed -i '82s/^/#/' utils/install_server.sh
-  sed -i '83s/^/#/' utils/install_server.sh
-  sed -i '84s/^/#/' utils/install_server.sh
+  # Since 6.0 the installer refuses to run on systems with systemd
+  sed -i '/^#bail if this system is managed by systemd/,/^unset _pid_1_exe/s/^/#/' utils/install_server.sh
 else
   cd /usr/local/source/redis/redis-${redisVersion}
 fi
@@ -76,6 +69,8 @@ cd utils
 mkdir -p /etc/redis/
 mkdir -p /var/log/redis
 mkdir -p /var/lib/redis
+# Up to 3.2 the installer ignores the variables and asks for each value (and a confirmation), the answers are passed as input
+printf '%s\n' "${port}" "/etc/redis/redis_${port}.conf" "/var/log/redis/${port}.log" "/var/lib/redis/${port}" "$(command -v redis-server)" "" | \
 REDIS_PORT=${port} \
 REDIS_CONFIG_FILE=/etc/redis/redis_${port}.conf \
 REDIS_LOG_FILE=/var/log/redis/${port}.log \
@@ -89,6 +84,10 @@ sysctl -p
 
 echo "Setting bind address to: ${bindAddress}"
 replace-file-content "/etc/redis/redis_${port}.conf" "bind ${bindAddress}" "bind 127.0.0.1" 0
+# Up to 3.0 the default configuration has no active bind directive
+if ! grep -q "^bind " "/etc/redis/redis_${port}.conf"; then
+  echo "bind ${bindAddress}" >> "/etc/redis/redis_${port}.conf"
+fi
 
 if [[ -f /.dockerenv ]]; then
   echo "Disabling protected mode"
