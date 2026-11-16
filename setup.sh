@@ -122,13 +122,37 @@ abortSetup()
 determineReleaseData()
 {
   local data
-  if ! data=$(curl -sfL "${gitReleaseUrl}" 2>/dev/null); then
+  if data=$(curl -sfL "${gitReleaseUrl}" 2>/dev/null) &&
+    [[ $(echo "${data}" | jq -r '.tag_name' 2>/dev/null) =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "${data}"
+    return 0
+  fi
+  determineReleaseDataWeb
+}
+
+# The GitHub API allows 60 requests per hour and address, which many containers building at the same time use up.
+# The release page and the tag archive are not counted, so the release version is taken from the redirect of
+# releases/latest and the archive of the tag is downloaded.
+determineReleaseDataWeb()
+{
+  local version
+  local url
+  if [[ -n "${applicationVersion}" ]]; then
+    version="${applicationVersion}"
+  else
+    if ! url=$(curl -sfIL -o /dev/null -w '%{url_effective}' "https://github.com/cosyses/app/releases/latest" 2>/dev/null); then
+      return 1
+    fi
+    version="${url##*/}"
+  fi
+  if ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     return 1
   fi
-  if ! [[ $(echo "${data}" | jq -r '.tag_name' 2>/dev/null) =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  url="https://github.com/cosyses/app/archive/refs/tags/${version}.zip"
+  if ! curl -sfIL -o /dev/null "${url}" 2>/dev/null; then
     return 1
   fi
-  echo "${data}"
+  jq -n --arg version "${version}" --arg url "${url}" '{tag_name: $version, zipball_url: $url}'
 }
 
 alreadyInstalled=0
