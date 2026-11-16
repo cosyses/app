@@ -71,11 +71,18 @@ export DEBIAN_FRONTEND=noninteractive
 
 # The MySQL repository keeps the packages of all previous versions, so this version stays installable (amd64 only)
 mysqlPackageVersion="8.4.13"
-release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
-packageUrl="https://repo.mysql.com/apt/ubuntu/pool/mysql-8.4-lts/m/mysql-community"
+# Debian uses this script as well, its packages are named like 8.4.13-1debian12
+if [[ "${distribution}" == "Debian" ]]; then
+  packageRelease="debian${release}"
+  packageUrl="https://repo.mysql.com/apt/debian/pool/mysql-8.4-lts/m/mysql-community"
+else
+  release=$(lsb_release -r | awk '{print $2}' | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
+  packageRelease="ubuntu${release}"
+  packageUrl="https://repo.mysql.com/apt/ubuntu/pool/mysql-8.4-lts/m/mysql-community"
+fi
 packageNames=( mysql-common mysql-community-client-plugins mysql-community-client-core mysql-community-client mysql-client mysql-community-server-core mysql-community-server )
 
-if [[ "$(get-installed-package-version mysql-community-server)" == "${mysqlPackageVersion}-1ubuntu${release}" ]]; then
+if [[ "$(get-installed-package-version mysql-community-server)" == "${mysqlPackageVersion}-1${packageRelease}" ]]; then
   echo "MySQL ${mysqlPackageVersion} already installed"
 else
   install-package wget
@@ -83,9 +90,9 @@ else
   downloadPath=$(mktemp -d)
   packageFiles=()
   for packageName in "${packageNames[@]}"; do
-    packageFile="${downloadPath}/${packageName}_${mysqlPackageVersion}-1ubuntu${release}_amd64.deb"
+    packageFile="${downloadPath}/${packageName}_${mysqlPackageVersion}-1${packageRelease}_amd64.deb"
     echo "Downloading package: ${packageName} ${mysqlPackageVersion}"
-    wget -nv -O "${packageFile}" "${packageUrl}/${packageName}_${mysqlPackageVersion}-1ubuntu${release}_amd64.deb"
+    wget -nv -O "${packageFile}" "${packageUrl}/${packageName}_${mysqlPackageVersion}-1${packageRelease}_amd64.deb"
     packageFiles+=( "${packageFile}" )
   done
   echo "Installing MySQL ${mysqlPackageVersion}"
