@@ -163,8 +163,12 @@ fi
 if [[ -n "${binaries}" ]]; then
   IFS=',' read -r -a binaryList <<< "${binaries}"
   for binary in "${binaryList[@]}"; do
-    if [[ -f "${appPath}/${binary}" ]]; then
-      chmod +x "${appPath}/${binary}"
+    # A file of an existing project may belong to another user (e.g. the owner of a mounted volume), who alone may
+    # change its mode: it is left as it is then, PHP scripts like artisan also run with php
+    if [[ -f "${appPath}/${binary}" ]] && [[ ! -x "${appPath}/${binary}" ]]; then
+      if ! chmod +x "${appPath}/${binary}" 2>/dev/null; then
+        echo "Could not make executable: ${appPath}/${binary} (owned by $(stat -c %U "${appPath}/${binary}"))"
+      fi
     fi
   done
 fi
