@@ -33,8 +33,11 @@ if [[ "${phpVersion%%.*}" -lt 7 ]]; then
   echo "no" | install-pecl-package "redis" 4.3.0
 elif [[ "${phpVersion%%.*}" -lt 8 ]]; then
   echo "no" | install-pecl-package "redis" 5.3.7
-else
+elif [[ "${phpVersion%%.*}" -eq 8 ]] && [[ "${phpVersion#*.}" -lt 5 ]]; then
   echo "no" | install-pecl-package "redis" 6.2.0
+else
+  # 6.2.0 does not compile with PHP 8.5
+  echo "no" | install-pecl-package "redis" 6.3.0
 fi
 
 echo "Creating configuration at: /etc/php/${phpVersion}/mods-available/redis.ini"

@@ -36,8 +36,11 @@ if [[ "${phpVersion%%.*}" -lt 7 ]]; then
   solrVersion="2.4.0"
 elif [[ "${phpVersion%%.*}" -lt 8 ]]; then
   solrVersion="2.6.0"
-else
+elif [[ "${phpVersion%%.*}" -eq 8 ]] && [[ "${phpVersion#*.}" -lt 5 ]]; then
   solrVersion="2.8.1"
+else
+  # 2.8.1 compiles with PHP 8.5 but fails to load (zend_exception_get_default was removed)
+  solrVersion="2.9.3"
 fi
 
 cd /tmp
