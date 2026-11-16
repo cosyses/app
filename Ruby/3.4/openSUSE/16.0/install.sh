@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+install-package ruby3.4 3.4
+install-package ruby3.4-devel 3.4
+# The packages without version link ruby, gem, ... to this version
+install-package ruby 3.4
+install-package ruby-devel 3.4
+
+if [[ -f /.dockerenv ]]; then
+  echo "Creating start script at: /usr/local/bin/ruby.sh"
+  cat <<EOF > /usr/local/bin/ruby.sh
+#!/usr/bin/env bash
+trap stop SIGTERM SIGINT SIGQUIT SIGHUP ERR
+stop() {
+  echo "Stopping Ruby"
+  exit
+}
+for command in "\$@"; do
+  echo "Run: \${command}"
+  /bin/bash "\${command}"
+done
+echo "Starting Ruby"
+tail -f /dev/null & wait \$!
+EOF
+  chmod +x /usr/local/bin/ruby.sh
+fi
