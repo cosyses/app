@@ -40,8 +40,14 @@ if [[ -z "${clean}" ]]; then
   clean="yes"
 fi
 
-install-package python3-software-properties
-add-ppa-repository ppa:ondrej/php
+if [[ "${distribution}" == "Debian" ]] || [[ "${release}" == "26.04" ]]; then
+  # The packages of Ondřej Surý for Debian, and for Ubuntu releases his PPA does not build for
+  osCodename=$(awk -F= '/^VERSION_CODENAME=/{print $2}' /etc/os-release | tr -d '"')
+  add-gpg-repository "php.list" "https://packages.sury.org/php/" "${osCodename}" "main" "https://packages.sury.org/php/apt.gpg"
+else
+  install-package python3-software-properties
+  add-ppa-repository ppa:ondrej/php
+fi
 install-package "php${phpVersion}"
 update-alternatives --set php "/usr/bin/php${phpVersion}"
 update-alternatives --set phar "/usr/bin/phar${phpVersion}"
