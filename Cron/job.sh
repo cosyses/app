@@ -88,7 +88,22 @@ chown root:root "/etc/cron.d/${name}"
 chmod 0644 "/etc/cron.d/${name}"
 
 # A running cron does not always notice a new file (in containers the directory's change time is not reliable)
+cronDaemon=
 if pgrep -x cron > /dev/null; then
+  cronDaemon="cron"
+elif pgrep -x crond > /dev/null; then
+  cronDaemon="crond"
+fi
+if [[ -n "${cronDaemon}" ]]; then
   echo "Restarting cron"
-  service cron restart
+  if [[ -f /etc/init.d/cron ]]; then
+    service cron restart
+  else
+    # cronie (crond on Alpine, cron on openSUSE) has no init script in containers
+    pkill -x "${cronDaemon}"
+    while pgrep -x "${cronDaemon}" > /dev/null; do
+      sleep 1
+    done
+    "${cronDaemon}"
+  fi
 fi
