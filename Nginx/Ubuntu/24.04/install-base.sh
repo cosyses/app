@@ -94,23 +94,38 @@ fi
 install-package ssl-cert
 add-certificate "default" "${sslCertFile}" "${sslKeyFile}"
 
-architecture=$(dpkg --print-architecture)
-if [[ "${architecture}" == "amd64" ]]; then
-  install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-elif [[ "${architecture}" == "arm64" ]]; then
-  install-package-from-deb libssl1.1 1.1_1.1.1f-1ubuntu2 http://launchpadlibrarian.net/475575244/libssl1.1_1.1.1f-1ubuntu2_arm64.deb
+# Debian (which uses this script as well) has no need for the old OpenSSL of Ubuntu
+if [[ "${distribution}" != "Debian" ]]; then
+  architecture=$(dpkg --print-architecture)
+  if [[ "${architecture}" == "amd64" ]]; then
+    install-package-from-deb libssl1.1 1.1.1f-1ubuntu2 http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+  elif [[ "${architecture}" == "arm64" ]]; then
+    install-package-from-deb libssl1.1 1.1_1.1.1f-1ubuntu2 http://launchpadlibrarian.net/475575244/libssl1.1_1.1.1f-1ubuntu2_arm64.deb
+  fi
+fi
+
+# The repositories of nginx.org for Ubuntu (noble) and Debian (bookworm, trixie)
+if [[ "${distribution}" == "Debian" ]]; then
+  nginxRepositoryOs="debian"
+  nginxRepositoryCodename=$(awk -F= '/^VERSION_CODENAME=/{print $2}' /etc/os-release | tr -d '"')
+else
+  nginxRepositoryOs="ubuntu"
+  nginxRepositoryCodename="noble"
 fi
 
 if [[ "${nginxRepository}" == "mainline" ]]; then
-  add-gpg-repository "nginx.list" "http://nginx.org/packages/mainline/ubuntu/" "noble" "nginx" "http://nginx.org/keys/nginx_signing.key" "y"
+  add-gpg-repository "nginx.list" "http://nginx.org/packages/mainline/${nginxRepositoryOs}/" "${nginxRepositoryCodename}" "nginx" "http://nginx.org/keys/nginx_signing.key" "y"
 else
-  add-gpg-repository "nginx.list" "https://nginx.org/packages/ubuntu/" "noble" "nginx" "https://nginx.org/keys/nginx_signing.key" "y"
+  add-gpg-repository "nginx.list" "https://nginx.org/packages/${nginxRepositoryOs}/" "${nginxRepositoryCodename}" "nginx" "https://nginx.org/keys/nginx_signing.key" "y"
 fi
 install-package nginx "${nginxVersion}"
 
 add-file-content-before /etc/security/limits.conf "nginx       soft    nofile  32768" "# End of file" 1
 add-file-content-before /etc/security/limits.conf "nginx       hard    nofile  65536" "# End of file" 1
-sysctl -p
+# Debian 13 has no /etc/sysctl.conf
+if [[ -f /etc/sysctl.conf ]]; then
+  sysctl -p
+fi
 
 service nginx stop
 
