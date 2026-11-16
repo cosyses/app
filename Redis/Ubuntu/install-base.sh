@@ -80,7 +80,10 @@ REDIS_EXECUTABLE=$(command -v redis-server) \
 
 add-file-content-before /etc/security/limits.conf "root  soft  nofile  10240" "# End of file" 1
 add-file-content-before /etc/security/limits.conf "root  hard  nofile  1048576" "# End of file" 1
-sysctl -p
+# Debian 13 has no /etc/sysctl.conf
+if [[ -f /etc/sysctl.conf ]]; then
+  sysctl -p
+fi
 
 echo "Setting bind address to: ${bindAddress}"
 replace-file-content "/etc/redis/redis_${port}.conf" "bind ${bindAddress}" "bind 127.0.0.1" 0
