@@ -17,6 +17,9 @@ if [[ "${composerPhpCurl}" == 1 ]]; then
   elif [[ -x "$(command -v dnf)" ]]; then
     # RHEL and Fedora have the curl extension in php-common
     install-package php-common
+  elif [[ -x "$(command -v zypper)" ]]; then
+    # openSUSE names the PHP packages with the major version, e.g. php8-curl
+    install-package "php${phpVersion%%.*}-curl" "${phpVersion}."
   else
     install-package "php${phpVersion}-curl"
   fi

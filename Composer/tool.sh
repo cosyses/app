@@ -82,6 +82,9 @@ if [[ -n "${phpExtensions}" ]]; then
     elif [[ -x "$(command -v apk)" ]]; then
       # Alpine names the PHP packages without the dot, e.g. php84-mbstring
       install-package "php${phpVersion//./}-${phpExtension}"
+    elif [[ -x "$(command -v zypper)" ]]; then
+      # openSUSE names the PHP packages with the major version, e.g. php8-mbstring
+      install-package "php${phpVersion%%.*}-${phpExtension}" "${phpVersion}."
     else
       install-package "php${phpVersion}-${phpExtension}"
     fi
