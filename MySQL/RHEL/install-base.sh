@@ -91,6 +91,15 @@ if [[ -z "${mysqldBinary}" ]]; then
   mysqldBinary="/usr/libexec/mysqld"
 fi
 
+# Fedora's server has file capabilities, which a container without these capabilities refuses to run
+if [[ -f /.dockerenv ]]; then
+  install-package libcap
+  if [[ -n "$(getcap "$(readlink -f "${mysqldBinary}")")" ]]; then
+    echo "Removing file capabilities of: $(readlink -f "${mysqldBinary}")"
+    setcap -r "$(readlink -f "${mysqldBinary}")"
+  fi
+fi
+
 echo "Allowing binding from: ${bindAddress}"
 # The my.cnf of the MySQL project does not include the directory /etc/my.cnf.d, the one of Fedora does
 mkdir -p /etc/my.cnf.d
