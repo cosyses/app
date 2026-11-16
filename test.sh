@@ -158,12 +158,14 @@ else
   dockerTerminal=( -i )
 fi
 
-# Stop the running container if this script is interrupted, docker run does not do so by itself
+# Stop and remove the container if this script is interrupted, docker run does not do so by itself, and --rm does not
+# remove a container that was interrupted before it started (it stays in the state "Created")
 containerName=
 stopContainer()
 {
   if [[ -n "${containerName}" ]]; then
     docker stop -t 2 "${containerName}" > /dev/null 2>&1 || true
+    docker rm -f "${containerName}" > /dev/null 2>&1 || true
   fi
 }
 trap 'stopContainer; exit 130' INT TERM HUP
