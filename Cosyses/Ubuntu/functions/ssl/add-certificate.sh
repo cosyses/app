@@ -3,10 +3,10 @@
 hostName="${1}"
 sslCertificate="${2}"
 sslKey="${3}"
-countryName="${4:-'DE'}"
-stateName="${5:-'Thuringia'}"
-localityName="${6:-'Jena'}"
-organizationName="${7:-'IT'}"
+countryName="${4:-DE}"
+stateName="${5:-Thuringia}"
+localityName="${6:-Jena}"
+organizationName="${7:-IT}"
 organizationalUnitName="${8:-Development}"
 
 sslCertificatePath=$(dirname "${sslCertificate}")
