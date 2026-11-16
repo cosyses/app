@@ -29,7 +29,7 @@ if [[ -z "${cosysesPath}" ]]; then
 fi
 
 # Set by the version specific install.sh which sources this script
-# Optional: mimeTypesVersion, eventmachineVersion and thinVersion pin dependencies of old versions
+# Optional: mailcatcherDependencies pins dependencies of old versions (gem:version, separated by spaces)
 if [[ -z "${mailcatcherVersion}" ]]; then
   >&2 echo "No MailCatcher version specified!"
   echo ""
@@ -75,25 +75,27 @@ else
   install-package lsof
 fi
 
-# The C extensions of eventmachine 1.0 and thin 1.5, which MailCatcher 0.6 depends on, do not compile with GCC 14 and
-# later, which treats these warnings as errors
+# Old versions pin their dependencies (gem:version), so that gem does not pick versions for newer Ruby versions. The C
+# extensions of eventmachine 1.0 and thin 1.5, which MailCatcher 0.6 depends on, do not compile with GCC 14 and later,
+# which treats these warnings as errors.
 gemBuildFlags="--with-cflags=-Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=int-conversion"
-if [[ -n "${eventmachineVersion}" ]] && [[ "$(get-installed-gem-version eventmachine)" != "${eventmachineVersion}" ]]; then
-  echo "Installing gem eventmachine=${eventmachineVersion}"
-  gem install eventmachine -v "${eventmachineVersion}" -- "${gemBuildFlags}"
-fi
-if [[ -n "${thinVersion}" ]] && [[ "$(get-installed-gem-version thin)" != "${thinVersion}" ]]; then
-  echo "Installing gem thin=${thinVersion}"
-  gem install thin -v "${thinVersion}" -- "${gemBuildFlags}"
-fi
-
-if [[ -n "${mimeTypesVersion}" ]]; then
-  install-gem mime-types "${mimeTypesVersion}"
-fi
+for mailcatcherDependency in ${mailcatcherDependencies}; do
+  dependencyName="${mailcatcherDependency%%:*}"
+  dependencyVersion="${mailcatcherDependency#*:}"
+  if [[ "$(get-installed-gem-version "${dependencyName}")" != "${dependencyVersion}" ]]; then
+    echo "Installing gem ${dependencyName}=${dependencyVersion}"
+    gem install "${dependencyName}" -v "${dependencyVersion}" -- "${gemBuildFlags}"
+  fi
+done
 
 install-gem mailcatcher "${mailcatcherVersion}"
 
-mailcatcherBinary=$(command -v mailcatcher)
+# openSUSE names the executables of gems with the Ruby version, e.g. mailcatcher.ruby3.4
+mailcatcherBinary=$(command -v mailcatcher || find "$(ruby -e 'print Gem.bindir')" -maxdepth 1 -name 'mailcatcher*' | head -n 1)
+if [[ -z "${mailcatcherBinary}" ]]; then
+  >&2 echo "Could not find the executable of MailCatcher"
+  exit 1
+fi
 
 if [[ -f /.dockerenv ]]; then
   echo "Creating start script at: /usr/local/bin/mailcatcher.sh"
