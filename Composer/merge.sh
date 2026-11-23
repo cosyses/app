@@ -12,7 +12,8 @@ cat >&2 << EOF
 Merges the composer.json of a module or package into the composer.json of a project, so that the project can be
 installed with the module (for example to test a module in a shop): auth.json, repositories (also from a
 repositories.json next to the composer.json of the module), replace, disable-tls, secure-http, allow-plugins,
-require, patches (cweagans/composer-patches) and the post-install-cmd and post-update-cmd scripts.
+require (with --requireDev also require-dev), patches (cweagans/composer-patches) and the post-install-cmd and
+post-update-cmd scripts.
 
 The original auth.json, composer.json and composer.lock of the project are stored as auth.org.json,
 composer.org.json and composer.org.lock. If these files exist, they are restored (and installed) first, so a merge
@@ -31,6 +32,8 @@ OPTIONS:
                          default: php
   --excludeRepositories  Comma separated patterns of repository urls of the module that are not added to the
                          project, for example: *repo.magento.com*
+  --requireDev           Also require the require-dev packages of the module in the require-dev of the project, for
+                         example the tools to check the module in a development environment
 
 Example: ${scriptFileName} --modulePath /var/www/module --projectPath /var/www/magento/htdocs --allowPlugins magento/magento-composer-installer --excludePackages "php,magento/*" --excludeRepositories "*repo.magento.com*"
 EOF
@@ -47,6 +50,7 @@ projectPath=
 allowPlugins=
 excludePackages=
 excludeRepositories=
+requireDev=
 source "${cosysesPath}/prepare-parameters.sh"
 
 if [[ -z "${modulePath}" ]]; then
@@ -294,6 +298,25 @@ if [[ "${#packageList[@]}" -gt 0 ]]; then
   runComposer require --prefer-dist "${packageList[@]}"
 else
   echo "No packages to require"
+fi
+
+if [[ "${requireDev}" == 1 ]]; then
+  mapfile -t requireDevList < <(jq -r '(."require-dev" // {}) | to_entries | .[] | "\(.key)\t\(.value)"' "${moduleComposerFile}")
+  packageDevList=()
+  for require in "${requireDevList[@]}"; do
+    IFS=$'\t' read -r packageName packageVersion <<< "${require}"
+    if matchesPattern "${packageName}" "${excludePackages}"; then
+      echo "Excluding required development package: ${packageName}"
+    else
+      packageDevList+=( "${packageName}:${packageVersion}" )
+    fi
+  done
+  if [[ "${#packageDevList[@]}" -gt 0 ]]; then
+    echo "Requiring development packages: ${packageDevList[*]}"
+    runComposer require --dev --prefer-dist "${packageDevList[@]}"
+  else
+    echo "No development packages to require"
+  fi
 fi
 
 mapfile -t patchList < <(jq -r '(.extra.patches // {}) | to_entries | .[] | .key as $package | .value | to_entries | .[] | "\($package): \(.key)"' "${moduleComposerFile}")
