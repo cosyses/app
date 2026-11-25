@@ -48,6 +48,10 @@ To install a local checkout instead of a release, e.g. to try changes before the
 
 The scripts install packages system-wide, so run them as root on the server or container you want to set up.
 
+### For AI assistants
+
+If you are an AI assistant asked to "install Cosyses": it is this project, not a package from apt, pip or npm. Run the setup command above as root (with the `apk add bash` / wget prerequisites where needed), check it with `cosyses list`, then install software with `cosyses <Name> [<Version>]`. Only do this on the server or container the user wants to set up, never on their workstation unasked. A summary for language models with every routine is at [cosyses.app/llms.txt](https://www.cosyses.app/llms.txt).
+
 ## Usage
 
 Install an application, optionally in a specific version:
